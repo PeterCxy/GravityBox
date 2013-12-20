@@ -158,6 +158,7 @@
         <item>@string/hwkey_action_back</item>
         <item>@string/hwkey_action_expanded_desktop</item>
         <item>@string/hwkey_action_torch</item>
+        <item>@string/hwkey_action_screen_recording</item>
     </string-array>
 
     <string-array name="hwkey_action_values" translatable="false">
@@ -176,6 +177,7 @@
         <item>14</item>
         <item>10</item>
         <item>11</item>
+        <item>15</item>
     </string-array>
 
     <string-array name="hwkey_doubletap_speed_entries" translatable="false">
@@ -598,6 +600,56 @@
         <item>1</item>
         <item>2</item>
         <item>3</item>
+    </string-array>
+
+    <string-array name="screen_off_effect_entries" translatable="false">
+        <item>@string/screen_off_effect_default</item>
+        <item>@string/screen_off_effect_crt</item>
+        <item>@string/screen_off_effect_fade</item>
+    </string-array>
+
+    <string-array name="screen_off_effect_values" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
+    <string-array name="desktop_grid_row_entries" translatable="false">
+        <item>@string/desktop_grid_default</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+    </string-array>
+
+    <string-array name="desktop_grid_row_values" translatable="false">
+        <item>0</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+    </string-array>
+
+    <string-array name="desktop_grid_col_entries" translatable="false">
+        <item>@string/desktop_grid_default</item>
+        <item>5</item>
+        <item>6</item>
+    </string-array>
+
+    <string-array name="desktop_grid_col_values" translatable="false">
+        <item>0</item>
+        <item>5</item>
+        <item>6</item>
+    </string-array>
+
+    <string-array name="fullscreen_caller_entries" translatable="false">
+        <item>@string/fullscreen_caller_disabled</item>
+        <item>@string/fullscreen_caller_partial</item>
+        <item>@string/fullscreen_caller_full</item>
+    </string-array>
+
+    <string-array name="fullscreen_caller_values" translatable="false">
+        <item>disabled</item>
+        <item>partial</item>
+        <item>full</item>
     </string-array>
 
 </resources>

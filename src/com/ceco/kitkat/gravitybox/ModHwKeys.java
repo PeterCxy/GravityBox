@@ -230,6 +230,8 @@ public class ModHwKeys {
                         GravityBoxSettings.EXTRA_ED_MODE, GravityBoxSettings.ED_DISABLED);
             } else if (action.equals(ACTION_TOGGLE_EXPANDED_DESKTOP) && mPhoneWindowManager != null) {
                 toggleExpandedDesktop();
+            } else if (action.equals(ScreenRecordingService.ACTION_TOGGLE_SCREEN_RECORDING)) {
+                toggleScreenRecording();
             }
         }
     };
@@ -600,6 +602,7 @@ public class ModHwKeys {
             intentFilter.addAction(GravityBoxSettings.ACTION_PREF_EXPANDED_DESKTOP_MODE_CHANGED);
             intentFilter.addAction(GravityBoxSettings.ACTION_PREF_HWKEY_LOCKSCREEN_TORCH_CHANGED);
             intentFilter.addAction(ACTION_TOGGLE_EXPANDED_DESKTOP);
+            intentFilter.addAction(ScreenRecordingService.ACTION_TOGGLE_SCREEN_RECORDING);
             mContext.registerReceiver(mBroadcastReceiver, intentFilter);
 
             if (DEBUG) log("Phone window manager initialized");
@@ -787,6 +790,8 @@ public class ModHwKeys {
             injectKey(KeyEvent.KEYCODE_HOME);
         } else if (action == GravityBoxSettings.HWKEY_ACTION_BACK) {
             injectKey(KeyEvent.KEYCODE_BACK);
+        } else if (action == GravityBoxSettings.HWKEY_ACTION_SCREEN_RECORDING) {
+            toggleScreenRecording();
         }
     }
 
@@ -1032,5 +1037,15 @@ public class ModHwKeys {
                 mAppLauncher.showDialog();
             }
         });
+    }
+
+    private static void toggleScreenRecording() {
+        try {
+            Intent intent = new Intent(mGbContext, ScreenRecordingService.class);
+            intent.setAction(ScreenRecordingService.ACTION_TOGGLE_SCREEN_RECORDING);
+            mGbContext.startService(intent);
+        } catch (Throwable t) {
+            log("Error toggling screen recording: " + t.getMessage());
+        }
     }
 }

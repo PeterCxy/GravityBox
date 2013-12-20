@@ -62,10 +62,10 @@ public class GravityBox implements IXposedHookZygoteInit, IXposedHookInitPackage
         ModAudio.initZygote(prefs);
         ModHwKeys.initZygote(prefs);
 //        TODO: rework for KitKat compatibility
-//        ModCallCard.initZygote();
 //        ModPhone.initZygote(prefs);
         ModExpandedDesktop.initZygote(prefs);
         ConnectivityServiceWrapper.initZygote();
+        PermissionGranter.initZygote();
     }
 
     @Override
@@ -121,10 +121,9 @@ public class GravityBox implements IXposedHookZygoteInit, IXposedHookInitPackage
             ModPowerMenu.init(prefs, lpparam.classLoader);
         }
 
-//        TODO: rework for KitKat compatibility
-//        if (lpparam.packageName.equals(ModCallCard.PACKAGE_NAME)) {
-//            ModCallCard.init(prefs, lpparam.classLoader);
-//        }
+        if (ModDialer.PACKAGE_NAMES.contains(lpparam.packageName)) {
+            ModDialer.init(prefs, lpparam.classLoader, lpparam.packageName);
+        }
 
         if (lpparam.packageName.equals(ModQuickSettings.PACKAGE_NAME) &&
                 prefs.getBoolean(GravityBoxSettings.PREF_KEY_QUICK_SETTINGS_ENABLE, true)) {
@@ -164,6 +163,10 @@ public class GravityBox implements IXposedHookZygoteInit, IXposedHookInitPackage
 
         if (lpparam.packageName.equals(ModLockscreen.PACKAGE_NAME)) {
             ModLockscreen.init(prefs, lpparam.classLoader);
+        }
+
+        if (ModLauncher.PACKAGE_NAMES.contains(lpparam.packageName)) {
+            ModLauncher.init(prefs, lpparam.classLoader);
         }
     }
 }

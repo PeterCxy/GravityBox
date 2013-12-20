@@ -775,6 +775,11 @@
             android:title="@string/pref_powermenu_screenshot_title"
             android:defaultValue="false" />
 
+        <CheckBoxPreference 
+            android:key="pref_powermenu_screenrecord"
+            android:title="@string/pref_powermenu_screenrecord_title"
+            android:defaultValue="false" />
+
         <ListPreference
             android:key="pref_low_battery_warning_policy"
             android:title="@string/low_battery_warning_policy_title"
@@ -853,11 +858,12 @@
             android:title="@string/pref_display_allow_all_rotations_title"
             android:defaultValue="false" />
 
-        <CheckBoxPreference 
-            android:key="pref_crt_off_effect"
+        <ListPreference 
+            android:key="pref_crt_off_effect2"
             android:title="@string/crt_off_effect_title"
-            android:summary="@string/crt_off_effect_summary"
-            android:defaultValue="false" />
+            android:entries="@array/screen_off_effect_entries"
+            android:entryValues="@array/screen_off_effect_values"
+            android:defaultValue="0" />
 
         <CheckBoxPreference 
             android:key="pref_unplug_turns_on_screen"
@@ -915,11 +921,12 @@
                 android:entryValues="@array/call_vibration_values"
                 android:defaultValue="@array/empty_array" />
 
-            <CheckBoxPreference 
-                android:key="pref_caller_fullscreen_photo"
+            <ListPreference 
+                android:key="pref_caller_fullscreen_photo2"
                 android:title="@string/caller_fullscreen_photo_title"
-                android:summary="@string/caller_fullscreen_photo_summary"
-                android:defaultValue="false" />
+                android:entries="@array/fullscreen_caller_entries"
+                android:entryValues="@array/fullscreen_caller_values"
+                android:defaultValue="disabled" />
 
             <CheckBoxPreference 
                 android:key="pref_caller_unknown_photo_enable"
@@ -929,6 +936,12 @@
             <Preference
                 android:key="pref_caller_unknown_photo"
                 android:title="@string/pref_caller_unknown_photo_title" />
+
+            <CheckBoxPreference 
+                android:key="pref_dialer_show_dialpad"
+                android:title="@string/pref_dialer_show_dialpad_title"
+                android:summary="@string/pref_dialer_show_dialpad_summary"
+                android:defaultValue="false" />
 
         </PreferenceCategory>
 
@@ -1012,6 +1025,38 @@
             android:entries="@array/volume_panel_timeout_entries"
             android:entryValues="@array/volume_panel_timeout_values"
             android:defaultValue="3000" />
+
+    </PreferenceScreen>
+
+    <PreferenceScreen 
+        android:key="pref_cat_launcher_tweaks"
+        android:title="@string/pref_cat_launcher_tweaks_title"
+        android:summary="@string/pref_cat_launcher_tweaks_summary">
+
+        <PreferenceCategory 
+            android:key="pref_cat_launcher_desktop_grid"
+            android:title="@string/pref_cat_launcher_desktop_grid_title">
+
+            <Preference 
+                android:key="pref_launcher_desktop_grid_info"
+                android:summary="@string/pref_launcher_desktop_grid_info_title"
+                android:persistent="false" />
+
+            <ListPreference
+                android:key="pref_launcher_desktop_grid_rows" 
+                android:title="@string/pref_launcher_desktop_grid_rows_title"
+                android:entries="@array/desktop_grid_row_entries"
+                android:entryValues="@array/desktop_grid_row_values"
+                android:defaultValue="0" />
+
+            <ListPreference
+                android:key="pref_launcher_desktop_grid_cols" 
+                android:title="@string/pref_launcher_desktop_grid_cols_title"
+                android:entries="@array/desktop_grid_col_entries"
+                android:entryValues="@array/desktop_grid_col_values"
+                android:defaultValue="0" />
+
+        </PreferenceCategory>
 
     </PreferenceScreen>
 

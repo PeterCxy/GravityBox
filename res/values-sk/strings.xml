@@ -38,7 +38,6 @@
     <string name="important">Dôležité</string>
 
     <string name="caller_fullscreen_photo_title">Foto volajúceho na celú obrazovku</string>
-    <string name="caller_fullscreen_photo_summary">Zobrazí foto volajúceho na celú obrazovku počas prijímania hovoru</string>
 
     <!-- QuickSettings strings -->
     <string name="quick_settings_sync_on">Synch zap</string>
@@ -115,8 +114,7 @@
     <string name="reboot_confirm_recovery">Váš %s bude reštartovaný do režimu Recovery.</string>
 
     <!-- CRT effect screen off animation -->
-    <string name="crt_off_effect_title">CRT efekt vypnutia obrazovky</string>
-    <string name="crt_off_effect_summary">Zapne animáciu, ktorá simuluje efekt vypnutia CRT obrazovky</string>
+    <string name="crt_off_effect_title">Efekt vypnutia obrazovky</string>
 
     <!-- Engineering mode shortcut -->
     <string name="engineering_mode_title">Režim technika</string>

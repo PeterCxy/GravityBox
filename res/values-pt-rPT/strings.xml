@@ -39,7 +39,6 @@
     <string name="important">Importante</string>
 
     <string name="caller_fullscreen_photo_title">Imagem do contato em ecrã completo</string>
-    <string name="caller_fullscreen_photo_summary">Mostra a imagem do contato em ecrã completo quando recebe uma chamada</string>
 
     <!-- QuickSettings strings -->
     <string name="quick_settings_sync_on">Sinc. ativada</string>
@@ -117,9 +116,8 @@
     <string name="reboot_confirm_recovery">O seu %s irá reiniciar em modo de recuperação.</string>
     <string name="reboot_confirm_bootloader">O seu %s irá reiniciar em modo bootloader.</string>
 
-    <!-- CRT effect screen off animation -->
-    <string name="crt_off_effect_title">Efeito CRT ao desligar</string>
-    <string name="crt_off_effect_summary">Simula o efeito CRT ao desligar o ecrã</string>
+    <!-- Screen off effect -->
+    <string name="crt_off_effect_title">Efeito ao desligar</string>
 
     <!-- Engineering mode shortcut -->
     <string name="engineering_mode_title">Modo de Engenharia</string>
@@ -770,5 +768,43 @@
     <string name="ringer_mode_vibrate">Vibrar</string>
     <string name="ringer_mode_sound">Tocar</string>
     <string name="ringer_mode_sound_vibrate">Tocar e vibrar</string>
+
+    <!-- Screen recording -->
+    <string name="screenrecord_notif_ticker">Gravação de ecrã a decorrer</string>
+    <string name="screenrecord_notif_title">A gravar</string>
+    <string name="screenrecord_notif_stop">Parar</string>
+    <string name="screenrecord_notif_pointer">Comutar ponteiro</string>
+    <string name="screenrecord_toast_error">Não foi possível iniciar gravação</string>
+    <string name="screenrecord_toast_processing">Não é possível iniciar uma nova gravação enquanto a anterior estiver a ser processada</string>
+    <string name="screenrecord_toast_saved">Gravação guardada como %s</string>
+    <string name="screenrecord_toast_save_error">Não foi possível guardar gravação no ficheiro destino</string>
+    <string name="action_screenrecord">Gravação de ecrã</string>
+    <string name="pref_powermenu_screenrecord_title">Gravação de ecrã no Menu Desligar</string>
+
+    <!-- Show dialpad automatically -->
+    <string name="pref_dialer_show_dialpad_title">Mostar marcador automaticamente</string>
+    <string name="pref_dialer_show_dialpad_summary">Permite mostrar o marcador automaticamente após lançar a aplicação de telefone</string>
+
+    <!-- Screen off effects -->
+    <string name="screen_off_effect_default">Padrão</string>
+    <string name="screen_off_effect_crt">CRT</string>
+    <string name="screen_off_effect_fade">Desvanescente</string>
+
+    <!-- Launcher tweaks -->
+    <string name="pref_cat_launcher_tweaks_title">Ajustes do inicializador</string>
+    <string name="pref_cat_launcher_tweaks_summary">Contém ajustes relacionados com o inicializador, aplicável ao padrão ou ao Google Experience</string>
+    <string name="pref_cat_launcher_desktop_grid_title">Grelha do ambiente de trabalho</string>
+    <string name="pref_launcher_desktop_grid_info_title">A utilização de valores diferentes dos pré-definidos pode causar problemas nos widgets, por isso use sabiamente. Após efetuar as alterações é necessário reiniciar o inicializador.</string>
+    <string name="pref_launcher_desktop_grid_rows_title">Número de linhas</string>
+    <string name="pref_launcher_desktop_grid_cols_title">Número de colunas</string>
+    <string name="desktop_grid_default">Padrão</string>
+
+    <!-- HW Key Actions: toggle screen recording -->
+    <string name="hwkey_action_screen_recording">Comutar gravação de ecrã</string>
+
+    <!-- Full screen caller photo modes -->
+    <string name="fullscreen_caller_disabled">Desativado</string>
+    <string name="fullscreen_caller_partial">Parcial</string>
+    <string name="fullscreen_caller_full">Completo</string>
 
 </resources>

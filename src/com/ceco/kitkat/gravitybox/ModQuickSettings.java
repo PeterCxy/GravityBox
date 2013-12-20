@@ -46,6 +46,7 @@ import com.ceco.kitkat.gravitybox.quicksettings.TorchTile;
 import com.ceco.kitkat.gravitybox.quicksettings.VolumeTile;
 import com.ceco.kitkat.gravitybox.quicksettings.WifiApTile;
 
+import android.animation.Animator;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -91,6 +92,9 @@ public class ModQuickSettings {
 
     private static final float STATUS_BAR_SETTINGS_FLIP_PERCENTAGE_RIGHT = 0.15f;
     private static final float STATUS_BAR_SETTINGS_FLIP_PERCENTAGE_LEFT = 0.85f;
+    private static final float STATUS_BAR_SWIPE_VERTICAL_MAX_PERCENTAGE = 0.025f;
+    private static final float STATUS_BAR_SWIPE_TRIGGER_PERCENTAGE = 0.05f;
+    private static final float STATUS_BAR_SWIPE_MOVE_PERCENTAGE = 0.2f;
 
     private static Context mContext;
     private static Context mGbContext;
@@ -111,6 +115,13 @@ public class ModQuickSettings {
     private static WifiManagerWrapper mWifiManager;
     private static Set<String> mOverrideTileKeys;
     private static XSharedPreferences mPrefs;
+
+    private static float mGestureStartX;
+    private static float mGestureStartY;
+    private static float mFlipOffset;
+    private static float mSwipeDirection;
+    private static boolean mTrackingSwipe;
+    private static boolean mSwipeTriggered;
 
     private static ArrayList<AQuickSettingsTile> mTiles;
     private static Map<String, View> mAllTileViews;
@@ -169,9 +180,7 @@ public class ModQuickSettings {
                 }
                 if (intent.hasExtra(GravityBoxSettings.EXTRA_QS_COLS)) {
                     mNumColumns = intent.getIntExtra(GravityBoxSettings.EXTRA_QS_COLS, 3);
-                    if (mContainerView != null) {
-                        XposedHelpers.callMethod(mContainerView, "updateResources");
-                    }
+                    updateTileLayout();
                 }
                 if (intent.hasExtra(GravityBoxSettings.EXTRA_QS_AUTOSWITCH)) {
                     mAutoSwitch = intent.getBooleanExtra(
@@ -184,8 +193,10 @@ public class ModQuickSettings {
                 }
             }
 
-            for (BroadcastSubReceiver bsr : mBroadcastSubReceivers) {
-                bsr.onBroadcastReceived(context, intent);
+            if (mBroadcastSubReceivers != null) {
+                for (BroadcastSubReceiver bsr : mBroadcastSubReceivers) {
+                    bsr.onBroadcastReceived(context, intent);
+                }
             }
         }
     };
@@ -259,7 +270,7 @@ public class ModQuickSettings {
             }
     
             // trigger layout refresh
-            XposedHelpers.callMethod(mContainerView, "updateResources");
+            updateTileLayout();
         } catch (Throwable t) {
             XposedBridge.log(t);
         }
@@ -325,11 +336,14 @@ public class ModQuickSettings {
         }
     }
 
-    private static void updateTileLayout(FrameLayout container, int orientation) {
-        if (container == null) return;
+    private static void updateTileLayout() {
+        if (mContainerView == null) return;
 
         try {
-            TileLayout tl = new TileLayout(container.getContext(), mNumColumns, orientation);
+            final Resources res = mContainerView.getResources();
+            final int orientation = res.getConfiguration().orientation;
+
+            TileLayout tl = new TileLayout(mContainerView.getContext(), mNumColumns, orientation);
 
             // update GB tiles layout
             if (mTiles != null) {
@@ -339,7 +353,6 @@ public class ModQuickSettings {
             }
 
             // update AOSP tiles layout
-            final Resources res = container.getResources();
             final int imgResId = res.getIdentifier("image", "id", PACKAGE_NAME);
             final int textResId = res.getIdentifier("text", "id", PACKAGE_NAME);
             final int rssiImgResId = res.getIdentifier("rssi_image", "id", PACKAGE_NAME);
@@ -348,7 +361,7 @@ public class ModQuickSettings {
             final int imgGroupResId = res.getIdentifier("image_group", "id", PACKAGE_NAME);
             final int rssiSlotIdResId = res.getIdentifier("rssi_slot_id", "id", PACKAGE_NAME);
 
-            final int tileCount = container.getChildCount();
+            final int tileCount = mContainerView.getChildCount();
             for(int i = 0; i < tileCount; i++) {
                 final ViewGroup viewGroup = (ViewGroup) mContainerView.getChildAt(i);
                 if (viewGroup == null) continue;
@@ -392,6 +405,11 @@ public class ModQuickSettings {
                     layoutView.setLayoutParams(lp);
                     layoutView.requestLayout();
                 }
+            }
+
+            if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+                XposedHelpers.setIntField(mContainerView, "mNumColumns", mNumColumns);
+                ((FrameLayout)mContainerView).requestLayout();
             }
         } catch (Throwable t) {
             XposedBridge.log(t);
@@ -462,13 +480,12 @@ public class ModQuickSettings {
                     phoneStatusBarClass, quickSettingsSetServiceHook);
             XposedHelpers.findAndHookMethod(quickSettingsClass, "addSystemTiles", 
                     ViewGroup.class, LayoutInflater.class, quickSettingsAddSystemTilesHook);
-            XposedHelpers.findAndHookMethod(quickSettingsClass, "updateResources", quickSettingsUpdateResourcesHook);
             XposedHelpers.findAndHookMethod(notifPanelViewClass, "onTouchEvent", 
                     MotionEvent.class, notificationPanelViewOnTouchEvent);
             XposedHelpers.findAndHookMethod(phoneStatusBarClass, "makeStatusBarView", 
                     makeStatusBarViewHook);
-            XposedHelpers.findAndHookMethod(quickSettingsContainerViewClass, "updateResources", 
-                    qsContainerViewUpdateResources);
+            XposedHelpers.findAndHookMethod(quickSettingsClass, "updateResources", 
+                    qsUpdateResources);
             XposedHelpers.findAndHookMethod(quickSettingsContainerViewClass, "onMeasure",
                     int.class, int.class, qsContainerViewOnMeasure);
 
@@ -583,6 +600,7 @@ public class ModQuickSettings {
                 LayoutInflater inflater = (LayoutInflater) param.args[1];
 
                 mTiles = new ArrayList<AQuickSettingsTile>();
+                mAllTileViews.clear();
 
                 if (Utils.hasNfc(mContext)) {
                     NfcTile nfcTile = new NfcTile(mContext, mGbContext, mStatusBar, mPanelBar);
@@ -664,9 +682,9 @@ public class ModQuickSettings {
         }
     };
 
-    private static XC_MethodHook quickSettingsUpdateResourcesHook = new XC_MethodHook() {
+    private static XC_MethodHook qsUpdateResources = new XC_MethodHook() {
         @Override
-        protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
+        protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
             if (DEBUG) log("updateResources - updating all tiles");
 
             for (AQuickSettingsTile t : mTiles) {
@@ -681,18 +699,33 @@ public class ModQuickSettings {
         protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
             try {
                 MotionEvent event = (MotionEvent) param.args[0];
+                boolean shouldRecycleEvent = false;
 
                 if (mStatusBar != null && XposedHelpers.getBooleanField(mStatusBar, "mHasFlipSettings")) {
                     boolean shouldFlip = false;
+                    boolean swipeFlipJustFinished = false;
+                    boolean swipeFlipJustStarted = false;
+
                     boolean okToFlip = XposedHelpers.getBooleanField(param.thisObject, "mOkToFlip");
                     Object notificationData = XposedHelpers.getObjectField(mStatusBar, "mNotificationData");
                     float handleBarHeight = XposedHelpers.getFloatField(param.thisObject, "mHandleBarHeight");
                     Method getExpandedHeight = param.thisObject.getClass().getSuperclass().getMethod("getExpandedHeight");
                     float expandedHeight = (Float) getExpandedHeight.invoke(param.thisObject);
-                    final int width = ((View) param.thisObject).getWidth();
-                    
+                    Method mIsFullyExpanded = param.thisObject.getClass().getSuperclass().getMethod("isFullyExpanded");
+                    final boolean isFullyExpanded = (Boolean) mIsFullyExpanded.invoke(param.thisObject);
+                    final boolean justPeeked = (Boolean) XposedHelpers.getBooleanField(param.thisObject, "mJustPeeked");
+
+                    final View thisView = (View) param.thisObject;
+                    final int width = thisView.getWidth();
+                    final int height = thisView.getHeight();
+                    final int paddingBottom = thisView.getPaddingBottom();
+
                     switch (event.getActionMasked()) {
                         case MotionEvent.ACTION_DOWN:
+                            mGestureStartX = event.getX(0);
+                            mGestureStartY = event.getY(0);
+                            mTrackingSwipe = isFullyExpanded &&
+                                    mGestureStartY > height - handleBarHeight - paddingBottom;
                             okToFlip = (expandedHeight == 0);
                             XposedHelpers.setBooleanField(param.thisObject, "mOkToFlip", okToFlip);
                             if (mAutoSwitch && 
@@ -709,40 +742,196 @@ public class ModQuickSettings {
                                 shouldFlip = true;
                             }
                             break;
-                        case MotionEvent.ACTION_POINTER_DOWN:
-                            if (okToFlip) {
-                                float miny = event.getY(0);
-                                float maxy = miny;
-                                for (int i = 1; i < event.getPointerCount(); i++) {
-                                    final float y = event.getY(i);
-                                    if (y < miny) miny = y;
-                                    if (y > maxy) maxy = y;
+                        case MotionEvent.ACTION_MOVE:
+                            final float deltaX = Math.abs(event.getX(0) - mGestureStartX);
+                            final float deltaY = Math.abs(event.getY(0) - mGestureStartY);
+                            final float maxDeltaY = height * STATUS_BAR_SWIPE_VERTICAL_MAX_PERCENTAGE;
+                            final float minDeltaX = width * STATUS_BAR_SWIPE_TRIGGER_PERCENTAGE;
+                            if (mTrackingSwipe && deltaY > maxDeltaY) {
+                                mTrackingSwipe = false;
+                            }
+                            if (mTrackingSwipe && deltaX > deltaY && deltaX > minDeltaX) {
+                                mSwipeDirection = event.getX(0) < mGestureStartX ? -1f : 1f;
+                                if (isShowingSettings()) {
+                                    mFlipOffset = 1f;
+                                    mSwipeDirection = -mSwipeDirection;
+                                } else {
+                                    mFlipOffset = -1f;
                                 }
-                                if (maxy - miny < handleBarHeight) {
-                                    shouldFlip = true;
-                                }
+                                mGestureStartX = event.getX(0);
+                                mTrackingSwipe = false;
+                                mSwipeTriggered = true;
+                                swipeFlipJustStarted = true;
                             }
                             break;
+                        case MotionEvent.ACTION_POINTER_DOWN:
+                            shouldFlip = true;
+                            break;
+                        case MotionEvent.ACTION_UP:
+                            swipeFlipJustFinished = mSwipeTriggered;
+                            mSwipeTriggered = false;
+                            mTrackingSwipe = false;
+                            break;
                     }
+
                     if (okToFlip && shouldFlip) {
+                        float miny = event.getY(0);
+                        float maxy = miny;
+                        for (int i=1; i<event.getPointerCount(); i++) {
+                            final float y = event.getY(i);
+                            if (y < miny) miny = y;
+                            if (y > maxy) maxy = y;
+                        }
+                        if (maxy - miny < handleBarHeight) {
+                            if (justPeeked || expandedHeight < handleBarHeight) {
+                                XposedHelpers.callMethod(mStatusBar, "switchToSettings");
+                            } else {
+                                XposedHelpers.callMethod(mStatusBar, "flipToSettings");
+                            }
+                            okToFlip = false;
+                            XposedHelpers.setBooleanField(param.thisObject, "mOkToFlip", okToFlip);
+                        }
+
                         if (expandedHeight < handleBarHeight) {
                             XposedHelpers.callMethod(mStatusBar, "switchToSettings");
                         } else {
                             XposedHelpers.callMethod(mStatusBar, "flipToSettings");
                         }
                         okToFlip = false;
+                        XposedHelpers.setBooleanField(param.thisObject, "mOkToFlip", okToFlip);
+                    } else if (mSwipeTriggered) {
+                        final float deltaX = (event.getX(0) - mGestureStartX) * mSwipeDirection;
+                        partialFlip(mFlipOffset + 
+                                deltaX / (width * STATUS_BAR_SWIPE_MOVE_PERCENTAGE));
+                        if (!swipeFlipJustStarted) {
+                            return true;
+                        }
+                    } else if (swipeFlipJustFinished) {
+                        completePartialFlip();
+                    }
+
+                    if (swipeFlipJustStarted || swipeFlipJustFinished) {
+                        MotionEvent original = event;
+                        event = MotionEvent.obtain(original.getDownTime(), original.getEventTime(),
+                                original.getAction(), width/2, height,
+                                original.getPressure(0), original.getSize(0), original.getMetaState(),
+                                original.getXPrecision(), original.getYPrecision(), original.getDeviceId(),
+                                original.getEdgeFlags());
+                        shouldRecycleEvent = true;
                     }
                 }
 
                 View handleView = (View) XposedHelpers.getObjectField(param.thisObject, "mHandleView"); 
-                return handleView.dispatchTouchEvent(event);
+                Object result = handleView.dispatchTouchEvent(event);
+                if (shouldRecycleEvent) {
+                    event.recycle();
+                }
+                return result;
             } catch (Throwable t) {
-                XposedBridge.invokeOriginalMethod(param.method, param.thisObject, param.args);
                 XposedBridge.log(t);
-                return null;
+                return XposedBridge.invokeOriginalMethod(param.method, param.thisObject, param.args);
             }
         }
     };
+
+    private static Object getObj(String name) {
+        return XposedHelpers.getObjectField(mStatusBar, name);
+    }
+
+    public static boolean isShowingSettings() {
+        if (XposedHelpers.getBooleanField(mStatusBar, "mHasFlipSettings")) {
+            View mFlipSettingsView = (View) getObj("mFlipSettingsView");
+            return mFlipSettingsView.getVisibility() == View.VISIBLE;
+        }
+        return false;
+    }
+
+    private static void switchToNotifications() {
+        if (mStatusBar == null) return;
+        try {
+            if (!XposedHelpers.getBooleanField(mStatusBar, "mUserSetup")) 
+                return;
+    
+            View mFlipSettingsView = (View) getObj("mFlipSettingsView");
+            View mSettingsButton = (View) getObj("mSettingsButton");
+            View mScrollView = (View) getObj("mScrollView");
+            View mNotificationButton = (View) getObj("mNotificationButton");
+            View mClearButton = (View) getObj("mClearButton");
+            mFlipSettingsView.setScaleX(0f);
+            mFlipSettingsView.setVisibility(View.GONE);
+            mSettingsButton.setVisibility(View.VISIBLE);
+            mSettingsButton.setAlpha(1f);
+            mScrollView.setVisibility(View.VISIBLE);
+            mScrollView.setScaleX(1f);
+            mNotificationButton.setVisibility(View.GONE);
+            mNotificationButton.setAlpha(0f);
+            mClearButton.setVisibility(View.VISIBLE);
+        } catch (Throwable t) {
+            XposedBridge.log(t);
+        }
+    }
+
+    private static void completePartialFlip() {
+        if (mStatusBar == null) return;
+
+        try {
+            if (XposedHelpers.getBooleanField(mStatusBar, "mHasFlipSettings")) {
+                View mFlipSettingsView = (View) getObj("mFlipSettingsView");
+                if (mFlipSettingsView.getVisibility() == View.VISIBLE) {
+                    XposedHelpers.callMethod(mStatusBar, "switchToSettings");
+                } else {
+                    switchToNotifications();
+                }
+            }
+        } catch (Throwable t) {
+            XposedBridge.log(t);
+        }
+    }
+
+    private static void partialFlip(float progress) {
+        if (mStatusBar == null) return;
+
+        try {
+            Animator mFlipSettingsViewAnim = (Animator) getObj("mFlipSettingsViewAnim");
+            if (mFlipSettingsViewAnim != null) mFlipSettingsViewAnim.cancel();
+            Animator mScrollViewAnim = (Animator) getObj("mScrollViewAnim");
+            if (mScrollViewAnim != null) mScrollViewAnim.cancel();
+            Animator mSettingsButtonAnim = (Animator) getObj("mSettingsButtonAnim");
+            if (mSettingsButtonAnim != null) mSettingsButtonAnim.cancel();
+            Animator mNotificationButtonAnim = (Animator) getObj("mNotificationButtonAnim");
+            if (mNotificationButtonAnim != null) mNotificationButtonAnim.cancel();
+            Animator mClearButtonAnim = (Animator) getObj("mClearButtonAnim");
+            if (mClearButtonAnim != null) mClearButtonAnim.cancel();
+
+            progress = Math.min(Math.max(progress, -1f), 1f);
+            View mFlipSettingsView = (View) getObj("mFlipSettingsView");
+            View mSettingsButton = (View) getObj("mSettingsButton");
+            View mScrollView = (View) getObj("mScrollView");
+            View mNotificationButton = (View) getObj("mNotificationButton");
+            View mClearButton = (View) getObj("mClearButton");
+
+            if (progress < 0f) { // notifications side
+                mFlipSettingsView.setScaleX(0f);
+                mFlipSettingsView.setVisibility(View.GONE);
+                mSettingsButton.setVisibility(View.VISIBLE);
+                mSettingsButton.setAlpha(-progress);
+                mScrollView.setVisibility(View.VISIBLE);
+                mScrollView.setScaleX(-progress);
+                mNotificationButton.setVisibility(View.GONE);
+            } else { // settings side
+                mFlipSettingsView.setScaleX(progress);
+                mFlipSettingsView.setVisibility(View.VISIBLE);
+                mSettingsButton.setVisibility(View.GONE);
+                mScrollView.setVisibility(View.GONE);
+                mScrollView.setScaleX(0f);
+                mNotificationButton.setVisibility(View.VISIBLE);
+                mNotificationButton.setAlpha(progress);
+            }
+            mClearButton.setVisibility(View.GONE);
+        } catch (Throwable t) {
+            XposedBridge.log(t);
+        }
+    }
 
     private static XC_MethodHook makeStatusBarViewHook = new XC_MethodHook() {
         @Override
@@ -757,21 +946,6 @@ public class ModQuickSettings {
                 } catch (NoSuchFieldError e) {
                     //
                 }
-            }
-        }
-    };
-
-    private static XC_MethodHook qsContainerViewUpdateResources = new XC_MethodHook() {
-        @Override
-        protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
-            if (DEBUG) log("qsContainerView updateResources called");
-            // do this only for portrait mode
-            FrameLayout fl = (FrameLayout) param.thisObject;
-            final int orientation = fl.getContext().getResources().getConfiguration().orientation;
-            updateTileLayout(fl, orientation);
-            if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-                XposedHelpers.setIntField(param.thisObject, "mNumColumns", mNumColumns);
-                fl.requestLayout();
             }
         }
     };

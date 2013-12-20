@@ -98,6 +98,7 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
     public static final String EXTRA_INDICATORS_DISABLED = "indicatorsDisabled";
     public static final String PREF_KEY_POWEROFF_ADVANCED = "pref_poweroff_advanced";
     public static final String PREF_KEY_POWERMENU_SCREENSHOT = "pref_powermenu_screenshot";
+    public static final String PREF_KEY_POWERMENU_SCREENRECORD = "pref_powermenu_screenrecord";
 
     public static final String PREF_KEY_VOL_KEY_CURSOR_CONTROL = "pref_vol_key_cursor_control";
     public static final int VOL_KEY_CURSOR_CONTROL_OFF = 0;
@@ -115,9 +116,10 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
     public static final int RECENT_CLEAR_BOTTOM_RIGHT = 85;
 
     public static final String PREF_CAT_KEY_PHONE = "pref_cat_phone";
-    public static final String PREF_KEY_CALLER_FULLSCREEN_PHOTO = "pref_caller_fullscreen_photo";
+    public static final String PREF_KEY_CALLER_FULLSCREEN_PHOTO = "pref_caller_fullscreen_photo2";
     public static final String PREF_KEY_CALLER_UNKNOWN_PHOTO_ENABLE = "pref_caller_unknown_photo_enable";
     public static final String PREF_KEY_CALLER_UNKNOWN_PHOTO = "pref_caller_unknown_photo";
+    public static final String PREF_KEY_DIALER_SHOW_DIALPAD = "pref_dialer_show_dialpad";
     public static final String PREF_KEY_NATIONAL_ROAMING = "pref_national_roaming";
     public static final String PREF_CAT_KEY_STATUSBAR = "pref_cat_statusbar";
     public static final String PREF_CAT_KEY_STATUSBAR_QS = "pref_cat_statusbar_qs";
@@ -151,10 +153,13 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
     public static final String PREF_KEY_ABOUT_GPLUS = "pref_about_gplus";
     public static final String PREF_KEY_ABOUT_XPOSED = "pref_about_xposed";
     public static final String PREF_KEY_ABOUT_DONATE = "pref_about_donate";
-    public static final String PREF_KEY_CRT_OFF_EFFECT = "pref_crt_off_effect";
+    public static final String PREF_KEY_CRT_OFF_EFFECT = "pref_crt_off_effect2";
     public static final String PREF_KEY_UNPLUG_TURNS_ON_SCREEN = "pref_unplug_turns_on_screen";
     public static final String PREF_KEY_ENGINEERING_MODE = "pref_engineering_mode";
     public static final String APP_MESSAGING = "com.android.mms";
+    public static final String APP_STOCK_LAUNCHER = "com.android.launcher3";
+    public static final String APP_GOOGLE_HOME = "com.google.android.launcher";
+    public static final String APP_GOOGLE_NOW = "com.google.android.googlequicksearchbox";
     public static final String APP_ENGINEERING_MODE = "com.mediatek.engineermode";
     public static final String APP_ENGINEERING_MODE_CLASS = "com.mediatek.engineermode.EngineerMode";
     public static final String PREF_KEY_DUAL_SIM_RINGER = "pref_dual_sim_ringer";
@@ -258,6 +263,7 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
     public static final int HWKEY_ACTION_APP_LAUNCHER = 12;
     public static final int HWKEY_ACTION_HOME = 13;
     public static final int HWKEY_ACTION_BACK = 14;
+    public static final int HWKEY_ACTION_SCREEN_RECORDING = 15;
     public static final int HWKEY_DOUBLETAP_SPEED_DEFAULT = 400;
     public static final int HWKEY_KILL_DELAY_DEFAULT = 1000;
     public static final int HWKEY_TORCH_DISABLED = 0;
@@ -486,6 +492,10 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
     public static final String ACTION_PREF_APP_LAUNCHER_CHANGED = "gravitybox.intent.action.APP_LAUNCHER_CHANGED";
     public static final String EXTRA_APP_LAUNCHER_SLOT = "appLauncherSlot";
     public static final String EXTRA_APP_LAUNCHER_APP = "appLauncherApp";
+
+    public static final String PREF_CAT_LAUNCHER_TWEAKS = "pref_cat_launcher_tweaks";
+    public static final String PREF_KEY_LAUNCHER_DESKTOP_GRID_ROWS = "pref_launcher_desktop_grid_rows";
+    public static final String PREF_KEY_LAUNCHER_DESKTOP_GRID_COLS = "pref_launcher_desktop_grid_cols";
 
     private static final int REQ_LOCKSCREEN_BACKGROUND = 1024;
     private static final int REQ_NOTIF_BG_IMAGE_PORTRAIT = 1025;
@@ -745,7 +755,7 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
         private PreferenceScreen mPrefCatLockscreen;
         private PreferenceScreen mPrefCatDisplay;
         private PreferenceScreen mPrefCatBrightness;
-        private CheckBoxPreference mPrefCrtOff;
+        private ListPreference mPrefCrtOff;
         private PreferenceScreen mPrefCatMedia;
         private CheckBoxPreference mPrefSafeMediaVolume;
         private ListPreference mPrefExpandedDesktop;
@@ -783,6 +793,7 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
         private File callerPhotoFile;
         private CheckBoxPreference mPrefCallerUnknownPhotoEnable;
         private Preference mPrefCallerUnknownPhoto;
+        private ListPreference mPrefCallerFullscreenPhoto;
         private SeekBarPreference mPrefTmSbLauncher;
         private SeekBarPreference mPrefTmSbLockscreen;
         private SeekBarPreference mPrefTmNbLauncher;
@@ -795,6 +806,9 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
         private PreferenceCategory mPrefCatHwKeyOthers;
         private PreferenceCategory mPrefCatLsOther;
         private CheckBoxPreference mPrefLsRingTorch;
+        private PreferenceScreen mPrefCatLauncherTweaks;
+        private ListPreference mPrefLauncherDesktopGridRows;
+        private ListPreference mPrefLauncherDesktopGridCols;
 
         @SuppressWarnings("deprecation")
         @Override
@@ -926,7 +940,7 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
             mPrefCatLockscreen = (PreferenceScreen) findPreference(PREF_CAT_KEY_LOCKSCREEN);
             mPrefCatDisplay = (PreferenceScreen) findPreference(PREF_CAT_KEY_DISPLAY);
             mPrefCatBrightness = (PreferenceScreen) findPreference(PREF_CAT_KEY_BRIGHTNESS);
-            mPrefCrtOff = (CheckBoxPreference) findPreference(PREF_KEY_CRT_OFF_EFFECT);
+            mPrefCrtOff = (ListPreference) findPreference(PREF_KEY_CRT_OFF_EFFECT);
             mPrefUnplugTurnsOnScreen = (CheckBoxPreference) findPreference(PREF_KEY_UNPLUG_TURNS_ON_SCREEN);
             mPrefCatMedia = (PreferenceScreen) findPreference(PREF_CAT_KEY_MEDIA);
             mPrefSafeMediaVolume = (CheckBoxPreference) findPreference(PREF_KEY_SAFE_MEDIA_VOLUME);
@@ -964,6 +978,7 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
             mPrefCallVibrations = (MultiSelectListPreference) findPreference(PREF_KEY_CALL_VIBRATIONS);
             mPrefCallerUnknownPhotoEnable = (CheckBoxPreference) findPreference(PREF_KEY_CALLER_UNKNOWN_PHOTO_ENABLE);
             mPrefCallerUnknownPhoto = (Preference) findPreference(PREF_KEY_CALLER_UNKNOWN_PHOTO);
+            mPrefCallerFullscreenPhoto = (ListPreference) findPreference(PREF_KEY_CALLER_FULLSCREEN_PHOTO);
 
             mPrefNetworkModeTileMode = (ListPreference) findPreference(PREF_KEY_NETWORK_MODE_TILE_MODE);
             mPrefNetworkModeTileLte = (CheckBoxPreference) findPreference(PREF_KEY_NETWORK_MODE_TILE_LTE);
@@ -1003,6 +1018,10 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
             mPrefCatLsOther = (PreferenceCategory) findPreference(PREF_CAT_KEY_LOCKSCREEN_OTHER);
             mPrefLsRingTorch = (CheckBoxPreference) findPreference(PREF_KEY_LOCKSCREEN_RING_TORCH);
 
+            mPrefCatLauncherTweaks = (PreferenceScreen) findPreference(PREF_CAT_LAUNCHER_TWEAKS);
+            mPrefLauncherDesktopGridRows = (ListPreference) findPreference(PREF_KEY_LAUNCHER_DESKTOP_GRID_ROWS);
+            mPrefLauncherDesktopGridCols = (ListPreference) findPreference(PREF_KEY_LAUNCHER_DESKTOP_GRID_COLS);
+
             // Remove Phone specific preferences on Tablet devices
             if (sSystemProperties.isTablet) {
                 mPrefCatStatusbarQs.removePreference(mPrefAutoSwitchQs);
@@ -1023,6 +1042,11 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
             }
             if (!Utils.isAppInstalled(getActivity(), APP_MESSAGING) && mPrefCatPhoneMessaging != null) {
                 mPrefCatPhone.removePreference(mPrefCatPhoneMessaging);
+            }
+            if (!(Utils.isAppInstalled(getActivity(), APP_GOOGLE_NOW) &&
+                    Utils.isAppInstalled(getActivity(), APP_GOOGLE_HOME) ||
+                    Utils.isAppInstalled(getActivity(), APP_STOCK_LAUNCHER))) {
+                getPreferenceScreen().removePreference(mPrefCatLauncherTweaks);
             }
             if (Utils.isWifiOnly(getActivity())) {
                 // Remove preferences that don't apply to wifi-only devices
@@ -1053,7 +1077,7 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
             // TODO: rework for KitKat compatibility
             getPreferenceScreen().removePreference(mPrefCatTransparencyManager);
             mPrefCatDisplay.removePreference(mPrefButtonBacklightNotif);
-            getPreferenceScreen().removePreference(mPrefCatPhone);
+            mPrefCatPhone.removePreference(mPrefCatPhoneMobileData);
 
             // Features not relevant for KitKat but keep them for potential future use
             mPrefCatStatusbarColors.removePreference(mPrefSbDaColor);
@@ -1381,6 +1405,22 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
 
             if (key == null || key.equals(PREF_KEY_VOLUME_PANEL_TIMEOUT)) {
                 mPrefVolumePanelTimeout.setSummary(mPrefVolumePanelTimeout.getEntry());
+            }
+
+            if (key == null || key.equals(PREF_KEY_CRT_OFF_EFFECT)) {
+                mPrefCrtOff.setSummary(mPrefCrtOff.getEntry());
+            }
+
+            if (key == null || key.equals(PREF_KEY_LAUNCHER_DESKTOP_GRID_ROWS)) {
+                mPrefLauncherDesktopGridRows.setSummary(mPrefLauncherDesktopGridRows.getEntry());
+            }
+
+            if (key == null || key.equals(PREF_KEY_LAUNCHER_DESKTOP_GRID_COLS)) {
+                mPrefLauncherDesktopGridCols.setSummary(mPrefLauncherDesktopGridCols.getEntry());
+            }
+
+            if (key == null || key.equals(PREF_KEY_CALLER_FULLSCREEN_PHOTO)) {
+                mPrefCallerFullscreenPhoto.setSummary(mPrefCallerFullscreenPhoto.getEntry());
             }
         }
 
