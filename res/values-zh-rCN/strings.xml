@@ -22,9 +22,8 @@
     <string name="battery_style_stock">原厂电量图标</string>
     <string name="battery_style_circle">圆形电量图标</string>
     <string name="battery_style_circle_percent">圆形电量图标含百分比</string>
-    <string name="battery_style_kitkat">KitKat 电量图标</string>
-    <string name="battery_style_kitkat_percent">KitKat 电量图标含百分比</string>
-    <string name="battery_style_percent">电量百分比（仅文字）</string>
+    <string name="battery_style_kitkat">KitKat电量图标</string>
+    <string name="battery_style_kitkat_percent">KitKat电量图标含百分比</string>
     <string name="battery_style_none">无</string>
 
     <string name="vol_music_controls_title">音量键切换歌曲</string>
@@ -54,7 +53,6 @@
     <string name="important">重要</string>
 
     <string name="caller_fullscreen_photo_title">全屏来电者照片</string>
-    <string name="caller_fullscreen_photo_summary">在来电画面内全屏显示来电者的照片</string>
 
     <!-- QuickSettings strings -->
     <string name="quick_settings_sync_on">同步开启</string>
@@ -74,7 +72,7 @@
     <string name="quick_settings_expanded_desktop_expanded">扩展</string>
     <string name="quick_settings_stay_awake_on">保持唤醒开启</string>
     <string name="quick_settings_stay_awake_off">保持唤醒关闭</string>
-	<string name="quick_settings_nfc_on">NFC 开启</string>
+    <string name="quick_settings_nfc_on">NFC 开启</string>
     <string name="quick_settings_nfc_off">NFC 关闭</string>
 
     <!--  QuickSettings settings -->
@@ -85,7 +83,7 @@
     <string name="qs_tile_battery">电池状态</string>
     <string name="qs_tile_wifi">Wi-Fi</string>
     <string name="qs_tile_bluetooth">蓝牙</string>
-    <string name="qs_tile_gps">位置</string>
+    <string name="qs_tile_gps">位置信息</string>
     <string name="qs_tile_gps_alt">GPS（CM风格）</string>
     <string name="qs_tile_mobile_data">移动数据</string>
     <string name="qs_tile_network_mode">网络模式</string>
@@ -103,7 +101,7 @@
     <string name="qs_tile_expanded_desktop">扩展桌面</string>
     <string name="qs_tile_stay_awake">保持唤醒</string>
     <string name="qs_tile_screenshot">屏幕截图</string>
-	<string name="qs_tile_nfc">NFC</string>
+    <string name="qs_tile_nfc">NFC</string>
 
     <!-- Color Picker -->
     <string name="dialog_color_picker">颜色选择器</string>
@@ -115,7 +113,7 @@
 
     <!-- Main preference categories -->
     <string name="pref_cat_statusbar_title">状态栏调整</string>
-    <string name="pref_cat_statusbar_summary">包含各种关于状态栏的调整选项</string>
+    <string name="pref_cat_statusbar_summary">包含各种与状态栏相关的调整选项</string>
     <string name="pref_cat_misc_title">杂项调整</string>
     <string name="pref_cat_misc_summary">包含所有不属于特定类别的调整选项</string>
 
@@ -131,10 +129,9 @@
     <string name="reboot_confirm">您的%s将重新启动</string>
     <string name="reboot_confirm_recovery">您的%s将重新启动至 Recovery</string>
     <string name="reboot_confirm_bootloader">您的%s将重新启动至 Bootloader</string>
-
-    <!-- CRT effect screen off animation -->
-    <string name="crt_off_effect_title">CRT 屏幕关闭特效</string>
-    <string name="crt_off_effect_summary">当屏幕关闭时使用旧式 CRT 屏幕关闭时的特效</string>
+    
+    <!-- Screen off effect -->
+    <string name="crt_off_effect_title">关闭屏幕效果</string>
 
     <!-- Engineering mode shortcut -->
     <string name="engineering_mode_title">工程模式</string>
@@ -146,7 +143,7 @@
 
     <!--  Lockscreen tweaks -->
     <string name="pref_cat_lockscreen_title">锁屏画面调整</string>
-    <string name="pref_cat_lockscreen_summary">包含各种关于锁屏画面的调整选项</string>
+    <string name="pref_cat_lockscreen_summary">包含各种与锁屏画面相关的调整选项</string>
     <string name="pref_cat_lockscreen_background_title">锁屏画面背景</string>
     <string name="pref_lockscreen_background_title">背景风格</string>
     <string name="lockscreen_bg_default">默认壁纸</string>
@@ -164,7 +161,7 @@
 
     <!--  Power tweaks category -->
     <string name="pref_cat_power_title">电源调整</string>
-    <string name="pref_cat_power_summary">包含各种关于电源相关的调整选项</string>
+    <string name="pref_cat_power_summary">包含各种与电源相关的调整选项</string>
 
     <!--  Low battery LED flashing -->
     <string name="pref_flashing_led_disable_title">停用 LED 闪烁</string>
@@ -172,7 +169,7 @@
 
     <!-- Display tweaks category -->
     <string name="pref_cat_display_title">显示调整</string>
-    <string name="pref_cat_display_summary">包含各种关于显示相关的调整选项</string>
+    <string name="pref_cat_display_summary">包含各种与显示相关的调整选项</string>
 
     <!-- Minimum brightness level -->
     <string name="pref_brightness_min_title">最低亮度级别</string>
@@ -208,7 +205,7 @@
 
     <!-- Media tweaks category -->
     <string name="pref_cat_media_title">媒体调整</string>
-    <string name="pref_cat_media_summary">包含各种关于媒体和声音系统的调整选项</string>
+    <string name="pref_cat_media_summary">包含各种与媒体和声音系统相关的调整选项</string>
 
     <!-- More music volume steps -->
     <string name="pref_music_volume_steps_title">更多音量段数</string>
@@ -225,9 +222,9 @@
     <!-- Hardware key actions -->
     <string name="pref_cat_hwkey_actions_title">实体按键调整</string>
     <string name="pref_cat_hwkey_actions_summary">可在此为实体按键设置自定动作</string>
-    <string name="hwkey_menu_longpress_dialog_title">菜单键长按动作</string>
-    <string name="hwkey_menu_doubletap_dialog_title">菜单键双击动作</string>
-    <string name="hwkey_back_longpress_dialog_title">返回键长按动作</string>
+    <string name="hwkey_menu_longpress_dialog_title">长按菜单键行为</string>
+    <string name="hwkey_menu_doubletap_dialog_title">双击菜单键行为</string>
+    <string name="hwkey_back_longpress_dialog_title">长按返回键行为</string>
     <string name="hwkey_action_default">默认</string>
     <string name="hwkey_action_search">搜索</string>
     <string name="hwkey_action_voice_search">语音搜索</string>
@@ -244,7 +241,7 @@
 
     <!--  Phone tweaks category -->
     <string name="pref_cat_phone_title">电话调整</string>
-    <string name="pref_cat_phone_summary">包含关于各种通话的调整选项</string>
+    <string name="pref_cat_phone_summary">包含各种与通话相关的调整选项</string>
 
     <!-- Flip action while ringing -->
     <string name="pref_phone_flip_title">响铃时的手机翻转动作</string>
@@ -332,9 +329,9 @@
     <string name="pref_disable_roaming_indicators_summary">禁用后漫游指示器上（R）不可见，请小心使用</string>
 
     <!-- Battery status in pie controls -->
-    <string name="pie_battery_status_charging">正在充电:（<xliff:g id="percent">%d</xliff:g>%%）</string>
+    <string name="pie_battery_status_charging">正在充电:<xliff:g id="percent">%d</xliff:g>%%</string>
     <string name="pie_battery_status_full">已充满!</string>
-    <string name="pie_battery_status_discharging">剩余电量：<xliff:g id="percent">%d</xliff:g>%%</string>
+    <string name="pie_battery_status_discharging">剩余电量:<xliff:g id="percent">%d</xliff:g>%%</string>
 
     <!-- Phone status in pie controls -->
     <string name="pie_phone_status_no_service">无服务</string>
@@ -445,7 +442,7 @@
     <string name="hwkey_action_recent_apps">显示最近使用的应用程序</string>
 
     <!-- HW Key Action: Home long-press -->
-    <string name="hwkey_home_longpress_dialog_title">长按主页键动作</string>
+    <string name="hwkey_home_longpress_dialog_title">长按主页键行为</string>
 
     <!-- HW Key Action: Launch cutom app -->
     <string name="hwkey_action_custom_app">执行自定义的应用 1</string>
@@ -489,7 +486,7 @@
 
     <!-- Navigation bar tweaks category -->
     <string name="pref_cat_navigation_bar_title">导航栏调整</string>
-    <string name="pref_cat_navigation_bar_summary">包含各种关于导航栏相关的调整选项</string>
+    <string name="pref_cat_navigation_bar_summary">包含各种与导航栏相关的调整选项</string>
     <string name="pref_navbar_override_title">覆盖系统默认值</string>
     <string name="pref_navbar_override_summary">导航栏调整总开关（需要重新启动）</string>
     <string name="pref_navbar_enable_title">启用导航栏</string>
@@ -753,6 +750,7 @@
 	请在 Xposed 安装器中激活新模块并立即重新启动，否则你可能会遇到系统的稳定性问题。</string>
     <string name="gb_new_package_settings_transfer_ok">GravityBox 设置转移成功</string>
     <string name="gb_new_package_settings_transfer_failed">GravityBox 设置转移失败</string>
+    
 
     <!-- Lockscreen Torch -->
     <string name="pref_hwkey_lockscreen_torch_title">锁屏手电筒</string>
@@ -798,11 +796,44 @@
     <string name="action_screenrecord">屏幕录制</string>
     <string name="pref_powermenu_screenrecord_title">电源键菜单屏幕录制</string>
 
-    <!-- Full screen caller visibility level -->
-    <string name="pref_caller_photo_visibility_title">照片能见度级别</string>
-
     <!-- Show dialpad automatically -->
     <string name="pref_dialer_show_dialpad_title">自动显示拨号盘</string>
     <string name="pref_dialer_show_dialpad_summary">打开拨号程序时自动显示拨号盘</string>
+    
+    <!-- Screen off effects -->
+    <string name="screen_off_effect_default">系统默认</string>
+    <string name="screen_off_effect_crt">CRT</string>
+    <string name="screen_off_effect_fade">淡出</string>
+
+    <!-- Launcher tweaks -->
+    <string name="pref_cat_launcher_tweaks_title">启动器调整</string>
+    <string name="pref_cat_launcher_tweaks_summary">仅适用于谷歌体验启动器</string>
+    <string name="pref_cat_launcher_desktop_grid_title">桌面网格</string>
+    <string name="pref_launcher_desktop_grid_info_title">使用其他值可以突破默认值小部件布局，明智地使用，更改后启动器需要重新启动</string>
+    <string name="pref_launcher_desktop_grid_rows_title">行数</string>
+    <string name="pref_launcher_desktop_grid_cols_title">列数</string>
+    <string name="desktop_grid_default">默认</string>
+
+    <!-- HW Key Acctions: toggle screen recording -->
+    <string name="hwkey_action_screen_recording">切换屏幕录制</string>
+
+    <!-- Full screen caller photo modes -->
+    <string name="fullscreen_caller_disabled">禁用</string>
+    <string name="fullscreen_caller_partial">部分</string>
+    <string name="fullscreen_caller_full">完全</string>
+    
+    <!-- Battery percent text -->
+    <string name="battery_percent_text_title">电量百分比</string>
+    <string name="battery_percent_text_size_title">电量百分比大小</string>
+    <string name="battery_percent_text_size_normal">标准</string>
+    <string name="battery_percent_text_size_smaller">小</string>
+    <string name="battery_percent_text_size_even_smaller">更小</string>
+    <string name="battery_percent_text_size_smallest">最小</string>
+    <string name="battery_percent_text_style_title">电量百分比风格</string>
+    <string name="battery_percent_text_style_default">默认</string>
+    <string name="battery_percent_text_style_numbers_only">只有数字（没百分号）</string>
+
+    <!-- Battery settings category -->
+    <string name="pref_cat_battery_settings_title">电量设置</string>
 
 </resources>
