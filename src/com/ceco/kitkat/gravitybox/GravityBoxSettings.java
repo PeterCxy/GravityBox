@@ -74,6 +74,7 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
     public static final String PREF_KEY_QUICK_SETTINGS = "pref_quick_settings2";
     public static final String PREF_KEY_QUICK_SETTINGS_TILE_ORDER = "pref_qs_tile_order";
     public static final String PREF_KEY_QUICK_SETTINGS_TILES_PER_ROW = "pref_qs_tiles_per_row";
+    public static final String PREF_KEY_QUICK_SETTINGS_HIDE_ON_CHANGE = "pref_qs_hide_on_change";
     public static final String PREF_KEY_QUICK_SETTINGS_AUTOSWITCH = "pref_auto_switch_qs";
     public static final String PREF_KEY_QUICK_PULLDOWN = "pref_quick_pulldown";
     public static final int QUICK_PULLDOWN_OFF = 0;
@@ -99,6 +100,8 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
     public static final String ACTION_DISABLE_ROAMING_INDICATORS_CHANGED = "gravitybox.intent.action.DISABLE_ROAMING_INDICATORS_CHANGED";
     public static final String EXTRA_INDICATORS_DISABLED = "indicatorsDisabled";
     public static final String PREF_KEY_POWEROFF_ADVANCED = "pref_poweroff_advanced";
+    public static final String PREF_KEY_REBOOT_ALLOW_ON_LOCKSCREEN = "pref_reboot_allow_on_lockscreen";
+    public static final String PREF_KEY_REBOOT_CONFIRM_REQUIRED = "pref_reboot_confirm_required";
     public static final String PREF_KEY_POWERMENU_SCREENSHOT = "pref_powermenu_screenshot";
     public static final String PREF_KEY_POWERMENU_SCREENRECORD = "pref_powermenu_screenrecord";
 
@@ -247,7 +250,7 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
     public static final String PREF_KEY_HWKEY_DOUBLETAP_SPEED = "pref_hwkey_doubletap_speed";
     public static final String PREF_KEY_HWKEY_KILL_DELAY = "pref_hwkey_kill_delay";
     public static final String PREF_CAT_HWKEY_VOLUME = "pref_cat_hwkey_volume";
-    public static final String PREF_KEY_VOLUME_ROCKER_WAKE_DISABLE = "pref_volume_rocker_wake_disable";
+    public static final String PREF_KEY_VOLUME_ROCKER_WAKE = "pref_volume_rocker_wake";
     public static final String PREF_KEY_HWKEY_LOCKSCREEN_TORCH = "pref_hwkey_lockscreen_torch";
     public static final String PREF_CAT_KEY_HWKEY_ACTIONS_OTHERS = "pref_cat_hwkey_actions_others";
     public static final int HWKEY_ACTION_DEFAULT = 0;
@@ -286,7 +289,7 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
     public static final String EXTRA_HWKEY_VALUE = "hwKeyValue";
     public static final String EXTRA_HWKEY_HOME_DOUBLETAP_DISABLE = "hwKeyHomeDoubletapDisable";
     public static final String EXTRA_HWKEY_HOME_LONGPRESS_KG = "hwKeyHomeLongpressKeyguard";
-    public static final String EXTRA_VOLUME_ROCKER_WAKE_DISABLE = "volumeRockerWakeDisable";
+    public static final String EXTRA_VOLUME_ROCKER_WAKE = "volumeRockerWake";
     public static final String EXTRA_HWKEY_TORCH = "hwKeyTorch";
 
     public static final String PREF_KEY_PHONE_FLIP = "pref_phone_flip";
@@ -403,6 +406,7 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
     public static final String EXTRA_QS_AUTOSWITCH = "qsAutoSwitch";
     public static final String EXTRA_QUICK_PULLDOWN = "quickPulldown";
     public static final String EXTRA_QS_TILE_STYLE = "qsTileStyle";
+    public static final String EXTRA_QS_HIDE_ON_CHANGE = "qsHideOnChange";
 
     public static final String ACTION_PREF_CLOCK_CHANGED = "gravitybox.intent.action.CENTER_CLOCK_CHANGED";
     public static final String EXTRA_CENTER_CLOCK = "centerClock";
@@ -426,6 +430,7 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
     public static final String PREF_KEY_NAVBAR_MENUKEY = "pref_navbar_menukey";
     public static final String PREF_KEY_NAVBAR_LAUNCHER_ENABLE = "pref_navbar_launcher_enable";
     public static final String PREF_KEY_NAVBAR_SWAP_KEYS = "pref_navbar_swap_keys";
+    public static final String PREF_KEY_NAVBAR_CURSOR_CONTROL = "pref_navbar_cursor_control";
     public static final String PREF_KEY_NAVBAR_COLOR_ENABLE = "pref_navbar_color_enable";
     public static final String PREF_KEY_NAVBAR_KEY_COLOR = "pref_navbar_key_color";
     public static final String PREF_KEY_NAVBAR_KEY_GLOW_COLOR = "pref_navbar_key_glow_color";
@@ -441,6 +446,7 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
     public static final String EXTRA_NAVBAR_KEY_COLOR = "navbarKeyColor";
     public static final String EXTRA_NAVBAR_KEY_GLOW_COLOR = "navbarKeyGlowColor";
     public static final String EXTRA_NAVBAR_BG_COLOR = "navbarBgColor";
+    public static final String EXTRA_NAVBAR_CURSOR_CONTROL = "navbarCursorControl";
 
     public static final String PREF_KEY_LOCKSCREEN_TARGETS_ENABLE = "pref_lockscreen_ring_targets_enable";
     public static final String PREF_KEY_LOCKSCREEN_TARGETS_APP[] = new String[] {
@@ -490,11 +496,13 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
     public static final int DT_POSITION_LEFT = 1;
     public static final int DT_POSITION_RIGHT = 2;
     public static final String PREF_KEY_DATA_TRAFFIC_SIZE = "pref_data_traffic_size";
+    public static final String PREF_KEY_DATA_TRAFFIC_INACTIVITY_MODE = "pref_data_traffic_inactivity_mode";
     public static final String ACTION_PREF_DATA_TRAFFIC_CHANGED = 
             "gravitybox.intent.action.DATA_TRAFFIC_CHANGED";
     public static final String EXTRA_DT_ENABLE = "dtEnable";
     public static final String EXTRA_DT_POSITION = "dtPosition";
     public static final String EXTRA_DT_SIZE = "dtSize";
+    public static final String EXTRA_DT_INACTIVITY_MODE = "dtInactivityMode";
 
     public static final String PREF_CAT_KEY_APP_LAUNCHER = "pref_cat_app_launcher";
     public static final List<String> PREF_KEY_APP_LAUNCHER_SLOT = new ArrayList<String>(Arrays.asList(
@@ -794,6 +802,7 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
         private ListPreference mPrefSbLockPolicy;
         private ListPreference mPrefDataTrafficPosition;
         private ListPreference mPrefDataTrafficSize;
+        private ListPreference mPrefDataTrafficInactivityMode;
         private CheckBoxPreference mPrefLinkVolumes;
         private CheckBoxPreference mPrefVolumePanelExpandable;
         private CheckBoxPreference mPrefVolumePanelFullyExpandable;
@@ -821,6 +830,7 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
         private PreferenceScreen mPrefCatLauncherTweaks;
         private ListPreference mPrefLauncherDesktopGridRows;
         private ListPreference mPrefLauncherDesktopGridCols;
+        private ListPreference mPrefVolumeRockerWake;
 
         @SuppressWarnings("deprecation")
         @Override
@@ -1003,6 +1013,7 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
             mPrefSbLockPolicy = (ListPreference) findPreference(PREF_KEY_STATUSBAR_LOCK_POLICY);
             mPrefDataTrafficPosition = (ListPreference) findPreference(PREF_KEY_DATA_TRAFFIC_POSITION);
             mPrefDataTrafficSize = (ListPreference) findPreference(PREF_KEY_DATA_TRAFFIC_SIZE);
+            mPrefDataTrafficInactivityMode = (ListPreference) findPreference(PREF_KEY_DATA_TRAFFIC_INACTIVITY_MODE);
 
             mPrefCatAppLauncher = (PreferenceScreen) findPreference(PREF_CAT_KEY_APP_LAUNCHER);
             mPrefAppLauncherSlot = new AppPickerPreference[PREF_KEY_APP_LAUNCHER_SLOT.size()];
@@ -1033,6 +1044,8 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
             mPrefCatLauncherTweaks = (PreferenceScreen) findPreference(PREF_CAT_LAUNCHER_TWEAKS);
             mPrefLauncherDesktopGridRows = (ListPreference) findPreference(PREF_KEY_LAUNCHER_DESKTOP_GRID_ROWS);
             mPrefLauncherDesktopGridCols = (ListPreference) findPreference(PREF_KEY_LAUNCHER_DESKTOP_GRID_COLS);
+
+            mPrefVolumeRockerWake = (ListPreference) findPreference(PREF_KEY_VOLUME_ROCKER_WAKE);
 
             // Remove Phone specific preferences on Tablet devices
             if (sSystemProperties.isTablet) {
@@ -1434,6 +1447,14 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
             if (key == null || key.equals(PREF_KEY_CALLER_FULLSCREEN_PHOTO)) {
                 mPrefCallerFullscreenPhoto.setSummary(mPrefCallerFullscreenPhoto.getEntry());
             }
+
+            if (key == null || key.equals(PREF_KEY_VOLUME_ROCKER_WAKE)) {
+                mPrefVolumeRockerWake.setSummary(mPrefVolumeRockerWake.getEntry());
+            }
+
+            if (key == null || key.equals(PREF_KEY_DATA_TRAFFIC_INACTIVITY_MODE)) {
+                mPrefDataTrafficInactivityMode.setSummary(mPrefDataTrafficInactivityMode.getEntry());
+            }
         }
 
         @Override
@@ -1463,6 +1484,10 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
                 intent.setAction(ACTION_PREF_QUICKSETTINGS_CHANGED);
                 intent.putExtra(EXTRA_QS_COLS, Integer.valueOf(
                         prefs.getString(PREF_KEY_QUICK_SETTINGS_TILES_PER_ROW, "3")));
+            } else if (key.equals(PREF_KEY_QUICK_SETTINGS_HIDE_ON_CHANGE)) {
+                intent.setAction(ACTION_PREF_QUICKSETTINGS_CHANGED);
+                intent.putExtra(EXTRA_QS_HIDE_ON_CHANGE,
+                        prefs.getBoolean(PREF_KEY_QUICK_SETTINGS_HIDE_ON_CHANGE, false));
             } else if (key.equals(PREF_KEY_QUICK_SETTINGS_AUTOSWITCH)) {
                 intent.setAction(ACTION_PREF_QUICKSETTINGS_CHANGED);
                 intent.putExtra(EXTRA_QS_AUTOSWITCH,
@@ -1584,10 +1609,10 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
                 intent.setAction(ACTION_PREF_HWKEY_KILL_DELAY_CHANGED);
                 intent.putExtra(EXTRA_HWKEY_VALUE, Integer.valueOf(
                         prefs.getString(PREF_KEY_HWKEY_KILL_DELAY, "1000")));
-            } else if (key.equals(PREF_KEY_VOLUME_ROCKER_WAKE_DISABLE)) {
+            } else if (key.equals(PREF_KEY_VOLUME_ROCKER_WAKE)) {
                 intent.setAction(ACTION_PREF_VOLUME_ROCKER_WAKE_CHANGED);
-                intent.putExtra(EXTRA_VOLUME_ROCKER_WAKE_DISABLE,
-                        prefs.getBoolean(PREF_KEY_VOLUME_ROCKER_WAKE_DISABLE, false));
+                intent.putExtra(EXTRA_VOLUME_ROCKER_WAKE,
+                        prefs.getString(PREF_KEY_VOLUME_ROCKER_WAKE, "default"));
             } else if (key.equals(PREF_KEY_HWKEY_LOCKSCREEN_TORCH)) {
                 intent.setAction(ACTION_PREF_HWKEY_LOCKSCREEN_TORCH_CHANGED);
                 intent.putExtra(EXTRA_HWKEY_TORCH, Integer.valueOf(
@@ -1728,6 +1753,10 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
                         prefs.getBoolean(PREF_KEY_NAVBAR_LAUNCHER_ENABLE, false));
             } else if (key.equals(PREF_KEY_NAVBAR_SWAP_KEYS)) {
                 intent.setAction(ACTION_PREF_NAVBAR_SWAP_KEYS);
+            } else if (key.equals(PREF_KEY_NAVBAR_CURSOR_CONTROL)) {
+                intent.setAction(ACTION_PREF_NAVBAR_CHANGED);
+                intent.putExtra(EXTRA_NAVBAR_CURSOR_CONTROL,
+                        prefs.getBoolean(PREF_KEY_NAVBAR_CURSOR_CONTROL, false));
             } else if (key.equals(PREF_KEY_NAVBAR_COLOR_ENABLE)) {
                 intent.setAction(ACTION_PREF_NAVBAR_CHANGED);
                 intent.putExtra(EXTRA_NAVBAR_COLOR_ENABLE,
@@ -1792,6 +1821,10 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
                 intent.setAction(ACTION_PREF_DATA_TRAFFIC_CHANGED);
                 intent.putExtra(EXTRA_DT_SIZE, Integer.valueOf(
                         prefs.getString(PREF_KEY_DATA_TRAFFIC_SIZE, "14")));
+            } else if (key.equals(PREF_KEY_DATA_TRAFFIC_INACTIVITY_MODE)) {
+                intent.setAction(ACTION_PREF_DATA_TRAFFIC_CHANGED);
+                intent.putExtra(EXTRA_DT_INACTIVITY_MODE, Integer.valueOf(
+                        prefs.getString(PREF_KEY_DATA_TRAFFIC_INACTIVITY_MODE, "0")));
             }
             if (intent.getAction() != null) {
                 getActivity().sendBroadcast(intent);

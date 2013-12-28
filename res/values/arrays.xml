@@ -112,6 +112,7 @@
         <item>@string/qs_tile_expanded_desktop</item>
         <item>@string/qs_tile_screenshot</item>
         <item>@string/qs_tile_gravitybox</item>
+        <item>@string/qs_tile_camera</item>
     </string-array>
 
     <string-array name="qs_tile_aosp_values_kk" translatable="false">
@@ -140,18 +141,25 @@
         <item>expanded_tileview</item>
         <item>screenshot_tileview</item>
         <item>gravitybox_tileview</item>
+        <item>camera_tileview</item>
     </string-array>
 
     <string-array name="qs_tile_override_entries" translatable="false">
         <item>@string/qs_tile_wifi</item>
         <item>@string/qs_tile_bluetooth</item>
         <item>@string/qs_tile_data_usage</item>
+        <item>@string/qs_tile_airplane_mode</item>
+        <item>@string/qs_tile_gps</item>
+        <item>@string/qs_tile_autorotation</item>
     </string-array>
 
     <string-array name="qs_tile_override_values" translatable="false">
         <item>wifi_textview</item>
         <item>bluetooth_textview</item>
         <item>rssi_textview</item>
+        <item>airplane_mode_textview</item>
+        <item>gps_textview</item>
+        <item>auto_rotate_textview</item>
     </string-array>
 
     <string-array name="lockscreen_bg_entries" translatable="false">
@@ -674,6 +682,30 @@
         <item>disabled</item>
         <item>partial</item>
         <item>full</item>
+    </string-array>
+
+    <string-array name="volume_rocker_wake_entries" translatable="false">
+        <item>@string/volume_rocker_wake_default</item>
+        <item>@string/volume_rocker_wake_enabled</item>
+        <item>@string/volume_rocker_wake_disabled</item>
+    </string-array>
+
+    <string-array name="volume_rocker_wake_values" translatable="false">
+        <item>default</item>
+        <item>enabled</item>
+        <item>disabled</item>
+    </string-array>
+
+    <string-array name="data_traffic_inactivity_mode_entries" translatable="false">
+        <item>@string/inactivity_mode_default</item>
+        <item>@string/inactivity_mode_hide</item>
+        <item>@string/inactivity_mode_summary</item>
+    </string-array>
+
+    <string-array name="data_traffic_inactivity_mode_values" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
     </string-array>
 
 </resources>
