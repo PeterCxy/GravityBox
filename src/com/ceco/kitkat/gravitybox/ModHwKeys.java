@@ -23,18 +23,23 @@ import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
 import android.hardware.input.InputManager;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
 import android.os.PowerManager;
 import android.os.Process;
+import android.os.RemoteException;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.view.HapticFeedbackConstants;
@@ -102,6 +107,13 @@ public class ModHwKeys {
     private static int mExpandedDesktopMode;
     private static boolean mMenuKeyPressed;
     private static boolean mBackKeyPressed;
+    private static int mCustomKeySingletapAction = GravityBoxSettings.HWKEY_ACTION_APP_LAUNCHER;
+    private static int mCustomKeyLongpressAction = GravityBoxSettings.HWKEY_ACTION_DEFAULT;
+    private static int mCustomKeyDoubletapAction = GravityBoxSettings.HWKEY_ACTION_DEFAULT;
+    private static boolean mIsCustomKeyLongPressed = false;
+    private static boolean mCustomKeyDoubletapPending = false;
+    private static boolean mWasCustomKeyDoubletap = false;
+    private static boolean mCustomKeyPressed = false;
 
     private static List<String> mKillIgnoreList = new ArrayList<String>(Arrays.asList(
             "com.android.systemui",
@@ -119,7 +131,8 @@ public class ModHwKeys {
         MENU,
         HOME,
         BACK,
-        RECENTS
+        RECENTS,
+        CUSTOM
     }
 
     private static enum HwKeyTrigger {
@@ -129,7 +142,10 @@ public class ModHwKeys {
         BACK_LONGPRESS,
         BACK_DOUBLETAP,
         RECENTS_SINGLETAP,
-        RECENTS_LONGPRESS
+        RECENTS_LONGPRESS,
+        CUSTOM_SINGLETAP,
+        CUSTOM_LONGPRESS,
+        CUSTOM_DOUBLETAP
     }
 
     private static BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
@@ -204,11 +220,7 @@ public class ModHwKeys {
                     mPieMode = intent.getIntExtra(GravityBoxSettings.EXTRA_PIE_ENABLE, 0);
                 }
             } else if (action.equals(ACTION_SCREENSHOT) && mPhoneWindowManager != null) {
-                try {
-                    XposedHelpers.callMethod(mPhoneWindowManager, "takeScreenshot");
-                } catch (Throwable t) {
-                    log("Error executing PhoneWindowManager.takeScreenshot(): " + t.getMessage());
-                }
+                takeScreenshot();
             } else if (action.equals(GravityBoxSettings.ACTION_PREF_DISPLAY_ALLOW_ALL_ROTATIONS_CHANGED)) {
                 final boolean allowAllRotations = intent.getBooleanExtra(
                         GravityBoxSettings.EXTRA_ALLOW_ALL_ROTATIONS, false);
@@ -231,6 +243,25 @@ public class ModHwKeys {
                 toggleExpandedDesktop();
             } else if (action.equals(ScreenRecordingService.ACTION_TOGGLE_SCREEN_RECORDING)) {
                 toggleScreenRecording();
+            } else if (action.equals(GravityBoxSettings.ACTION_PREF_NAVBAR_CHANGED)) {
+                if (intent.hasExtra(GravityBoxSettings.EXTRA_NAVBAR_CUSTOM_KEY_SINGLETAP)) {
+                    mCustomKeySingletapAction = intent.getIntExtra(
+                            GravityBoxSettings.EXTRA_NAVBAR_CUSTOM_KEY_SINGLETAP,
+                                GravityBoxSettings.HWKEY_ACTION_APP_LAUNCHER);
+                    if (DEBUG) log("mCustomKeySingletapAction set to: " + mCustomKeySingletapAction);
+                }
+                if (intent.hasExtra(GravityBoxSettings.EXTRA_NAVBAR_CUSTOM_KEY_LONGPRESS)) {
+                    mCustomKeyLongpressAction = intent.getIntExtra(
+                            GravityBoxSettings.EXTRA_NAVBAR_CUSTOM_KEY_LONGPRESS,
+                                GravityBoxSettings.HWKEY_ACTION_DEFAULT);
+                    if (DEBUG) log("mCustomKeyLongpressAction set to: " + mCustomKeyLongpressAction);
+                }
+                if (intent.hasExtra(GravityBoxSettings.EXTRA_NAVBAR_CUSTOM_KEY_DOUBLETAP)) {
+                    mCustomKeyDoubletapAction = intent.getIntExtra(
+                            GravityBoxSettings.EXTRA_NAVBAR_CUSTOM_KEY_DOUBLETAP,
+                                GravityBoxSettings.HWKEY_ACTION_DEFAULT);
+                    if (DEBUG) log("mCustomKeyDoubletapAction set to: " + mCustomKeyDoubletapAction);
+                }
             }
         }
     };
@@ -259,6 +290,12 @@ public class ModHwKeys {
                         prefs.getString(GravityBoxSettings.PREF_KEY_HWKEY_KILL_DELAY, "1000"));
                 mLockscreenTorch = Integer.valueOf(
                         prefs.getString(GravityBoxSettings.PREF_KEY_HWKEY_LOCKSCREEN_TORCH, "0"));
+                mCustomKeySingletapAction = Integer.valueOf(prefs.getString(
+                        GravityBoxSettings.PREF_KEY_NAVBAR_CUSTOM_KEY_SINGLETAP, "12"));
+                mCustomKeyLongpressAction = Integer.valueOf(prefs.getString(
+                        GravityBoxSettings.PREF_KEY_NAVBAR_CUSTOM_KEY_LONGPRESS, "0"));
+                mCustomKeyDoubletapAction = Integer.valueOf(prefs.getString(
+                        GravityBoxSettings.PREF_KEY_NAVBAR_CUSTOM_KEY_DOUBLETAP, "0"));
             } catch (NumberFormatException e) {
                 XposedBridge.log(e);
             }
@@ -297,9 +334,10 @@ public class ModHwKeys {
                     int keyCode = event.getKeyCode();
                     boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
                     boolean keyguardOn = (Boolean) XposedHelpers.callMethod(mPhoneWindowManager, "keyguardOn");
+                    boolean isFromSystem = (event.getFlags() & KeyEvent.FLAG_FROM_SYSTEM) != 0;
                     Handler handler = (Handler) XposedHelpers.getObjectField(param.thisObject, "mHandler");
                     if (DEBUG) log("interceptKeyBeforeQueueing: keyCode=" + keyCode +
-                            "; action=" + event.getAction());
+                            "; action=" + event.getAction() + "; repeatCount=" + event.getRepeatCount());
 
                     if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
                         if (!down) {
@@ -368,6 +406,50 @@ public class ModHwKeys {
                                 return;
                             }
                         }
+                    }
+
+                    if (keyCode == KeyEvent.KEYCODE_SOFT_LEFT) {
+                        if (!down) {
+                            mCustomKeyPressed = false;
+                            if (!mIsCustomKeyLongPressed && 
+                                    !mCustomKeyDoubletapPending && !mWasCustomKeyDoubletap) {
+                                if (DEBUG) log("Custom key singletap action");
+                                performAction(HwKeyTrigger.CUSTOM_SINGLETAP);
+                            }
+                            mIsCustomKeyLongPressed = false;
+                        } else {
+                            mCustomKeyPressed = true;
+                            if (event.getRepeatCount() == 0) {
+                                if (mCustomKeyDoubletapPending) {
+                                    handler.removeCallbacks(mCustomKeyDoubletapReset);
+                                    mWasCustomKeyDoubletap = true;
+                                    mCustomKeyDoubletapPending = false;
+                                    if (DEBUG) log("Custom key double-tap action");
+                                    performAction(HwKeyTrigger.CUSTOM_DOUBLETAP);
+                                } else if (mCustomKeyDoubletapAction != GravityBoxSettings.HWKEY_ACTION_DEFAULT
+                                            && isFromSystem) {
+                                    mCustomKeyDoubletapPending = true;
+                                    mWasCustomKeyDoubletap = false;
+                                    handler.postDelayed(mCustomKeyDoubletapReset, mDoubletapSpeed);
+                                }
+                                if (isFromSystem) {
+                                    XposedHelpers.callMethod(param.thisObject, "performHapticFeedbackLw",
+                                        new Class<?> [] { Class.forName(CLASS_WINDOW_STATE), int.class, boolean.class },
+                                        null, HapticFeedbackConstants.VIRTUAL_KEY, false);
+                                }
+                            } else {
+                                handler.removeCallbacks(mCustomKeyDoubletapReset);
+                                mCustomKeyDoubletapPending = false;
+                                mIsCustomKeyLongPressed = true;
+                                if (DEBUG) log("Custom key long-press action");
+                                performAction(HwKeyTrigger.CUSTOM_LONGPRESS);
+                                XposedHelpers.callMethod(param.thisObject, "performHapticFeedbackLw",
+                                        new Class<?> [] { Class.forName(CLASS_WINDOW_STATE), int.class, boolean.class },
+                                        null, HapticFeedbackConstants.LONG_PRESS, false);
+                            }
+                        }
+                        param.setResult(0);
+                        return;
                     }
                 }
             });
@@ -606,6 +688,7 @@ public class ModHwKeys {
             intentFilter.addAction(GravityBoxSettings.ACTION_PREF_HWKEY_LOCKSCREEN_TORCH_CHANGED);
             intentFilter.addAction(ACTION_TOGGLE_EXPANDED_DESKTOP);
             intentFilter.addAction(ScreenRecordingService.ACTION_TOGGLE_SCREEN_RECORDING);
+            intentFilter.addAction(GravityBoxSettings.ACTION_PREF_NAVBAR_CHANGED);
             mContext.registerReceiver(mBroadcastReceiver, intentFilter);
 
             if (DEBUG) log("Phone window manager initialized");
@@ -677,6 +760,20 @@ public class ModHwKeys {
         }
     };
 
+    private static Runnable mCustomKeyDoubletapReset = new Runnable() {
+        @Override
+        public void run() {
+            mCustomKeyDoubletapPending = false;
+            // doubletap timed out and since we blocked single-tap action while waiting for doubletap
+            // let's inject it now additionally, but only in case it's not still pressed as we might still be waiting
+            // for long-press action
+            if (!mCustomKeyPressed) {
+                if (DEBUG) log("Custom key double tap timed out and key not pressed; injecting key");
+                injectKey(KeyEvent.KEYCODE_SOFT_LEFT);
+            }
+        }
+    };
+
     private static Runnable mLockscreenTorchRunnable = new Runnable() {
 
         @Override
@@ -730,6 +827,12 @@ public class ModHwKeys {
             action = mRecentsSingletapAction;
         } else if (keyTrigger == HwKeyTrigger.RECENTS_LONGPRESS) {
             action = mRecentsLongpressAction;
+        } else if (keyTrigger == HwKeyTrigger.CUSTOM_SINGLETAP) {
+            action = mCustomKeySingletapAction;
+        } else if (keyTrigger == HwKeyTrigger.CUSTOM_LONGPRESS) {
+            action = mCustomKeyLongpressAction;
+        } else if (keyTrigger == HwKeyTrigger.CUSTOM_DOUBLETAP) {
+            action = mCustomKeyDoubletapAction;
         }
 
         if (DEBUG) log("Action for HWKEY trigger " + keyTrigger + " = " + action);
@@ -749,6 +852,8 @@ public class ModHwKeys {
         } else if (key == HwKey.RECENTS) {
             retVal |= getActionForHwKeyTrigger(HwKeyTrigger.RECENTS_SINGLETAP) != GravityBoxSettings.HWKEY_ACTION_DEFAULT;
             retVal |= getActionForHwKeyTrigger(HwKeyTrigger.RECENTS_LONGPRESS) != GravityBoxSettings.HWKEY_ACTION_DEFAULT;
+        } else if (key == HwKey.CUSTOM) {
+            retVal = true;
         }
 
         if (DEBUG) log("HWKEY " + key + " has action = " + retVal);
@@ -1051,4 +1156,72 @@ public class ModHwKeys {
             log("Error toggling screen recording: " + t.getMessage());
         }
     }
+
+    private static final Object mScreenshotLock = new Object();
+    private static ServiceConnection mScreenshotConnection = null;  
+    private static void takeScreenshot() {
+        final Handler handler = (Handler) XposedHelpers.getObjectField(mPhoneWindowManager, "mHandler");
+        if (handler == null) return;
+
+        synchronized (mScreenshotLock) {  
+            if (mScreenshotConnection != null) {  
+                return;  
+            }  
+            ComponentName cn = new ComponentName("com.android.systemui",  
+                    "com.android.systemui.screenshot.TakeScreenshotService");  
+            Intent intent = new Intent();  
+            intent.setComponent(cn);  
+            ServiceConnection conn = new ServiceConnection() {  
+                @Override  
+                public void onServiceConnected(ComponentName name, IBinder service) {  
+                    synchronized (mScreenshotLock) {  
+                        if (mScreenshotConnection != this) {  
+                            return;  
+                        }  
+                        Messenger messenger = new Messenger(service);  
+                        Message msg = Message.obtain(null, 1);  
+                        final ServiceConnection myConn = this;  
+                                                
+                        Handler h = new Handler(handler.getLooper()) {  
+                            @Override  
+                            public void handleMessage(Message msg) {  
+                                synchronized (mScreenshotLock) {  
+                                    if (mScreenshotConnection == myConn) {  
+                                        mContext.unbindService(mScreenshotConnection);  
+                                        mScreenshotConnection = null;  
+                                        handler.removeCallbacks(mScreenshotTimeout);  
+                                    }  
+                                }  
+                            }  
+                        };  
+                        msg.replyTo = new Messenger(h);  
+                        msg.arg1 = msg.arg2 = 0;  
+                        try {  
+                            messenger.send(msg);  
+                        } catch (RemoteException e) {
+                            XposedBridge.log(e);
+                        }  
+                    }  
+                }  
+                @Override  
+                public void onServiceDisconnected(ComponentName name) {}  
+            };  
+            if (mContext.bindService(intent, conn, Context.BIND_AUTO_CREATE)) {  
+                mScreenshotConnection = conn;  
+                handler.postDelayed(mScreenshotTimeout, 10000);  
+            }  
+        }
+    }
+    
+    private static final Runnable mScreenshotTimeout = new Runnable() {
+        @Override
+        public void run() {
+            synchronized (mScreenshotLock) {
+                if (mScreenshotConnection != null) {
+                    mContext.unbindService(mScreenshotConnection);
+                    mScreenshotConnection = null;
+                }
+            }
+        }
+    };
 }

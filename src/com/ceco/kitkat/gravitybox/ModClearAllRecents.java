@@ -67,6 +67,7 @@ public class ModClearAllRecents {
     private static int mClearAllRecentsSizePx;
     private static int mRamUsageBarVerticalMargin;
     private static int mRamUsageBarHorizontalMargin;
+    private static boolean mPreserveCurrentTask;
 
     private static void log(String message) {
         XposedBridge.log(TAG + ": " + message);
@@ -128,13 +129,24 @@ public class ModClearAllRecents {
                     mRecentsClearButton.setScaleType(ScaleType.CENTER);
                     mRecentsClearButton.setClickable(true);
                     mRecentsClearButton.setOnClickListener(new View.OnClickListener() {
-                        
                         @Override
                         public void onClick(View v) {
                             ViewGroup mRecentsContainer = (ViewGroup) XposedHelpers.getObjectField(
                                     param.thisObject, "mRecentsContainer");
                             // passing null parameter in this case is our action flag to remove all views
+                            mPreserveCurrentTask = false;
                             mRecentsContainer.removeViewInLayout(null);
+                        }
+                    });
+                    mRecentsClearButton.setOnLongClickListener(new View.OnLongClickListener() {
+                        @Override
+                        public boolean onLongClick(View v) {
+                            ViewGroup mRecentsContainer = (ViewGroup) XposedHelpers.getObjectField(
+                                    param.thisObject, "mRecentsContainer");
+                            // passing null parameter in this case is our action flag to remove all views
+                            mPreserveCurrentTask = true;
+                            mRecentsContainer.removeViewInLayout(null);
+                            return true;
                         }
                     });
                     mRecentsClearButton.setVisibility(View.GONE);
@@ -216,6 +228,7 @@ public class ModClearAllRecents {
     private static void updateButtonLayout(View container) {
         if (mRecentsClearButton == null) return;
 
+        final Context context = mRecentsClearButton.getContext();
         int gravity = Integer.valueOf(mPrefs.getString(
                 GravityBoxSettings.PREF_KEY_RECENTS_CLEAR_ALL, "53"));
         List<?> recentTaskDescriptions = (List<?>) XposedHelpers.getObjectField(
@@ -231,17 +244,20 @@ public class ModClearAllRecents {
                 int marginTop = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 
                         mPrefs.getInt(GravityBoxSettings.PREF_KEY_RECENTS_CLEAR_MARGIN_TOP, 0), 
                         res.getDisplayMetrics());
-                int marginRight = (gravity == 53 && orientation == Configuration.ORIENTATION_LANDSCAPE) ?
+                int marginRight = (gravity == 53 && orientation == Configuration.ORIENTATION_LANDSCAPE
+                        && Utils.isPhoneUI(context)) ?
                         (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 
                                 mPrefs.getInt(GravityBoxSettings.PREF_KEY_RECENTS_CLEAR_MARGIN_BOTTOM, 0), 
                                 res.getDisplayMetrics()): 0;
                 lparams.setMargins(0, marginTop, marginRight, 0);
             } else {
-                int marginBottom = (orientation == Configuration.ORIENTATION_PORTRAIT) ?
+                int marginBottom = (orientation == Configuration.ORIENTATION_PORTRAIT || 
+                                        !Utils.isPhoneUI(context)) ?
                         (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 
                         mPrefs.getInt(GravityBoxSettings.PREF_KEY_RECENTS_CLEAR_MARGIN_BOTTOM, 0), 
                         res.getDisplayMetrics()) : 0;
-                int marginRight = (gravity == 85 && orientation == Configuration.ORIENTATION_LANDSCAPE) ?
+                int marginRight = (gravity == 85 && orientation == Configuration.ORIENTATION_LANDSCAPE
+                        && Utils.isPhoneUI(context)) ?
                         (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 
                                 mPrefs.getInt(GravityBoxSettings.PREF_KEY_RECENTS_CLEAR_MARGIN_BOTTOM, 0), 
                                 res.getDisplayMetrics()): 0;
@@ -275,20 +291,25 @@ public class ModClearAllRecents {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                int count = mLinearLayout.getChildCount();
+                final int count = mLinearLayout.getChildCount();
                 for (int i = 0; i < count; i++) {
                     final View child = mLinearLayout.getChildAt(i);
+                    final int index = i;
                     handler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
                             try {
-                                Object[] newArgs = new Object[] { child };
-                                XposedBridge.invokeOriginalMethod(param.method, param.thisObject, newArgs);
+                                if (mPreserveCurrentTask && index == (count-1)) {
+                                    Object callback = XposedHelpers.getObjectField(param.thisObject, "mCallback");
+                                    XposedHelpers.callMethod(callback, "handleOnClick", child);
+                                } else {
+                                    Object[] newArgs = new Object[] { child };
+                                    XposedBridge.invokeOriginalMethod(param.method, param.thisObject, newArgs);
+                                }
                             } catch (Exception e) {
                                 XposedBridge.log(e);
                             }
                         }
-                        
                     }, 150 * i);
                 }
             }
@@ -310,6 +331,7 @@ public class ModClearAllRecents {
         if (rbGravity == 0) {
             mRamUsageBar.setVisibility(View.GONE);
         } else {
+            final Context context = mRamUsageBar.getContext();
             final Resources res = mRamUsageBar.getResources();
             final int orientation = res.getConfiguration().orientation;
             final int caGravity = Integer.valueOf(mPrefs.getString(
@@ -322,11 +344,13 @@ public class ModClearAllRecents {
             final int marginTop = rbOnTop ? (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 
                     mPrefs.getInt(GravityBoxSettings.PREF_KEY_RECENTS_CLEAR_MARGIN_TOP, 0), 
                     res.getDisplayMetrics()) : 0;
-            final int marginBottom = (!rbOnTop && orientation == Configuration.ORIENTATION_PORTRAIT) ? 
+            final int marginBottom = (!rbOnTop && (orientation == Configuration.ORIENTATION_PORTRAIT ||
+                                                    !Utils.isPhoneUI(context))) ? 
                     (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 
                     mPrefs.getInt(GravityBoxSettings.PREF_KEY_RECENTS_CLEAR_MARGIN_BOTTOM, 0), 
                     res.getDisplayMetrics()) : 0;
-            final int marginRight = orientation == Configuration.ORIENTATION_LANDSCAPE ?
+            final int marginRight = orientation == Configuration.ORIENTATION_LANDSCAPE && 
+                                                        Utils.isPhoneUI(context) ?
                             (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 
                                     mPrefs.getInt(GravityBoxSettings.PREF_KEY_RECENTS_CLEAR_MARGIN_BOTTOM, 0), 
                                     res.getDisplayMetrics()) : 0;
