@@ -261,7 +261,7 @@
 
     <!-- QuickSettings tiles per row -->
     <string name="pref_qs_tiles_per_row_title">Casillas por fila</string>
-    <string name="pref_qs_tiles_per_row_summary">Define cuántas casillas de ajustes se mostrarán por fila. Las casillas se redimensionan automáticamente. Se aplica en el modo retrato.</string>
+    <string name="pref_qs_tiles_per_row_summary">Define cuántas casillas de ajustes se mostrarán por fila, redimensionándose automáticamente (se aplica en el modo retrato en móviles o en cualquier orientación en tablets)</string>
 	
     <!--  Status bar clock - show day of week -->
     <string name="pref_statusbar_clock_dow_title">Mostrar día de la semana</string>
@@ -433,7 +433,6 @@
 
     <!-- Brightness preference category -->
     <string name="pref_cat_brightness_title">Ajustes de brillo</string>
-    <string name="pref_brightness_master_switch_title">Habilitar ajustes de brillo</string>
     <string name="pref_brightness_master_switch_summary">Usar solo cuando tu dispositivo soporte características estándar de brillo de Android. Deshabilitar si experimentas problemas relacionados con el brillo (requiere reinicio).</string>
 
     <!-- HW Key Action: Recent apps -->
@@ -465,7 +464,6 @@
     <!-- Expanded Desktop -->
     <string name="pref_expanded_desktop_title">Modo escritorio expandido</string>
     <string name="expanded_desktop_disabled">Desactivado</string>
-    <string name="expanded_desktop_statusbar">Ocultar barra de estado</string>
     <string name="expanded_desktop_navbar">Ocultar barra de navegación</string>
     <string name="expanded_desktop_both">Ocultar ambas</string>
     <string name="action_expanded_desktop_title">Escritorio expandido</string>
@@ -485,8 +483,7 @@
     <!-- Navigation bar tweaks category -->
     <string name="pref_cat_navigation_bar_title">Ajustes de la barra de navegación</string>
     <string name="pref_cat_navigation_bar_summary">Contiene diversos ajustes relacionados con la barra de navegación</string>
-    <string name="pref_navbar_override_title">Sobreescribir ajustes predeterminados</string>
-    <string name="pref_navbar_override_summary">Interruptor principal para ajustes de la barra de navegación (requiere reinicio)</string>
+    <string name="pref_navbar_override_summary">Activador de los ajustes de la barra de navegación (requiere reinicio)</string>
     <string name="pref_navbar_enable_title">Habilitar barra de navegación</string>
     <string name="pref_navbar_enable_summary">Requiere reinicio</string>
     <string name="pref_navbar_height_title">Altura de la barra de navegación</string>
@@ -501,8 +498,7 @@
 
     <!-- Unlock ring settings -->
     <string name="pref_cat_lockscreen_ring_settings_title">Ajustes del anillo de desbloqueo</string>
-    <string name="pref_lockscreen_ring_targets_enable_title">Habilitar disparadores en anillo de desbloqueo</string>
-    <string name="pref_lockscreen_ring_targets_enable_summary">Interruptor principal para los disparadores del anillo de desbloqueo</string>
+    <string name="pref_lockscreen_ring_targets_enable_summary">Activador de los disparadores del anillo de desbloqueo</string>
     <string name="pref_lockscreen_ring_targets_app_title">Aplicación destino %s</string>
     <string name="pref_lockscreen_ring_vertical_offset_title">Unlock ring vertical offset</string>
     <string name="pref_lockscreen_ring_horizontal_offset_title">Unlock ring horizontal offset</string>
@@ -526,7 +522,7 @@
 
     <!-- QuickSettings: override AOSP tile behaviour -->
     <string name="pref_qs_tile_behaviour_override_title">Cambiar comportamiento predeterminado de las casillas de ajustes</string>
-    <string name="pref_qs_tile_behaviour_override_summary">Cambia el comportamiento de pulsación/larga pulsación en los ajustes seleccionados (requiere reinicio)</string>
+    <string name="pref_qs_tile_behaviour_override_summary">Cambia el comportamiento de larga pulsación a una pulsación y añade \'Cerrar al pulsar\' en los ajustes seleccionados (requiere reinicio)</string>
 
     <!-- QuickSettings: SIM Slot for network mode tile -->
     <string name="pref_qs_network_mode_sim_slot_title">Slots de SIM correspondientes a ajustes de red</string>
@@ -587,7 +583,6 @@
 
     <!-- Data traffic monitor -->
     <string name="pref_cat_data_traffic_title">Monitor de tráfico de datos</string>
-    <string name="pref_data_traffic_enable_title">Habilitar monitorización</string>
     <string name="pref_data_traffic_enable_summary">Muestra el monitor de tráfico automáticamente cuando se activa una conexión de datos</string>
     <string name="pref_data_traffic_position_title">Posición</string>
     <string name="dt_position_auto">Automática (centro o derecha dependiendo de la posición del reloj)</string>
@@ -754,7 +749,7 @@
     <string name="hwkey_ls_torch_voldown_longpress">Con pulsación larga en botón de bajar volumen</string>
 
     <!-- QuickSettings management master switch -->
-    <string name="pref_qs_management_enable_summary">Interruptor principal de la gestión de ajustes rápidos (requiere reinicio)</string>
+    <string name="pref_qs_management_enable_summary">Activador de la gestión de ajustes rápidos (requiere reinicio)</string>
 
     <!-- AppPickerPreference: shortcut support -->
     <string name="app_picker_applications">Aplicaciones</string>
@@ -783,7 +778,7 @@
     <string name="screenrecord_notif_ticker">Se está grabando la pantalla</string>
     <string name="screenrecord_notif_title">Grabando pantalla</string>
     <string name="screenrecord_notif_stop">Parar</string>
-    <string name="screenrecord_notif_pointer">Alternar puntero</string>
+    <string name="screenrecord_notif_pointer">Mostrar/ocultar lugar de pulsación</string>
     <string name="screenrecord_toast_error">Imposible grabar pantalla</string>
     <string name="screenrecord_toast_processing">No se puede grabar aún porque la grabación anterior se está procesando</string>
     <string name="screenrecord_toast_saved">Grabación guardada como %s</string>
@@ -875,4 +870,23 @@
     <!-- Network mode tile: CDMA support -->
     <string name="pref_network_mode_tile_cdma_title">Usar modos de red CDMA</string>
     
+    <!--  HW Key Action: Toggle auto rotation -->
+    <string name="hwkey_action_auto_rotation">Alternar rotación automática</string>
+    <string name="hwkey_action_auto_rotation_enabled">Rotación automática activada</string>
+    <string name="hwkey_action_auto_rotation_disabled">Rotación automática desactivada</string>
+    
+    <!-- Allow any widget on Lockscreen -->
+    <string name="pref_lockscreen_allow_any_widget_title">Permitir cualquier widget</string>
+    <string name="pref_lockscreen_allow_any_widget_summary">Permite colocar en la pantalla de bloqueo los widgets que solo pueden ser usados en el lanzador</string>
+
+    <!-- HW Key Actions: Show power menu, expand notifications, expand quick settings -->
+    <string name="hwkey_action_show_power_menu">Mostrar menú de apagado</string>
+    <string name="hwkey_action_expand_notifications">Expandir panel de notificaciones</string>
+    <string name="hwkey_action_expand_quicksettings">Expandir panel de ajustes rápidos</string>
+
+    <!-- Navigation bar ring targets -->
+    <string name="pref_cat_navbar_ring_targets_title">Objetivos en anillo de barra de navegación</string>
+    <string name="pref_navbar_ring_targets_enable_summary">Activador de objetivos en el anillo de barra de navegación (requiere reinicio)</string>
+    <string name="pref_navbar_ring_target_title">Objetivo de anillo %d</string>
+
 </resources>
