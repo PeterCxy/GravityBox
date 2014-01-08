@@ -305,7 +305,7 @@ public class StatusbarSignalCluster implements BroadcastSubReceiver, IconManager
             try {
                 XposedHelpers.callMethod(mView, "apply");
             } catch (Throwable t) {
-                log("Error invoking apply() method: " + t.getMessage());
+                logAndMute("invokeApply", t);
             }
         }
     }
@@ -417,7 +417,8 @@ public class StatusbarSignalCluster implements BroadcastSubReceiver, IconManager
                         final int wifiIconId = (Integer)args[1];
                         if (mConnectionStateEnabled && wifiIconId != 0) {
                             String wifiIconName = mResources.getResourceEntryName(wifiIconId);
-                            fullyConnected = wifiIconName.contains("full");
+                            fullyConnected = wifiIconName.contains("full") ||
+                                    wifiIconName.equals("ic_qs_wifi_0");
                         }
                         mWifiActivity.update((Boolean)args[0], fullyConnected, 
                                 (Boolean)args[2], (Boolean)args[3]);
@@ -436,7 +437,7 @@ public class StatusbarSignalCluster implements BroadcastSubReceiver, IconManager
                     }
                 }
             } catch (Throwable t) {
-                log("Error in NetworkControllerCallback proxy: " + t.getMessage());
+                logAndMute("NetworkControllerCallback", t);
             }
 
             return null;

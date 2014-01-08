@@ -816,13 +816,14 @@
     <!-- Battery percent text -->
     <string name="battery_percent_text_title">电量百分比文字</string>
     <string name="battery_percent_text_size_title">电量百分比文字大小</string>
+    <string name="battery_percent_text_size_larger">大</string>
     <string name="battery_percent_text_size_normal">正常</string>
     <string name="battery_percent_text_size_smaller">小</string>
     <string name="battery_percent_text_size_even_smaller">更小</string>
     <string name="battery_percent_text_size_smallest">最小</string>
     <string name="battery_percent_text_style_title">电量百分比文字风格</string>
     <string name="battery_percent_text_style_default">默认</string>
-    <string name="battery_percent_text_style_numbers_only">仅数字（没有百分号）</string>
+    <string name="battery_percent_text_style_numbers_only">仅数字（没百分比）</string>
 
     <!-- Battery settings category -->
     <string name="pref_cat_battery_settings_title">电量设置</string>
@@ -889,5 +890,54 @@
     <string name="pref_cat_navbar_ring_targets_title">导航栏环目标</string>
     <string name="pref_navbar_ring_targets_enable_summary">导航栏环目标主开关（需要重新启动）</string>
     <string name="pref_navbar_ring_target_title">环目标 %d</string>
+    
+    <!-- Shortcut activity title -->
+    <string name="shortcut_activity_title">GravityBox 动作</string>
+
+    <!-- Network mode shortcut -->
+    <string name="shortcut_network_mode">切换网络模式</string>
+
+    <!-- Toggle mobile data shortcut -->
+    <string name="shortcut_mobile_data">切换移动数据</string>
+
+    <!-- Toggle WiFi shortcut -->
+    <string name="shortcut_wifi">切换 WiFi</string>
+
+    <!-- Toggle Bluetooth shortcut -->
+    <string name="shortcut_bluetooth">切换蓝牙</string>
+    
+    <!-- Toggle WiFi AP shortcut -->
+    <string name="shortcut_wifi_ap">切换 WiFi AP</string>
+
+    <!-- Location mode shortcut -->
+    <string name="shortcut_location_mode">设置位置模式</string>
+    <string name="location_mode_high_accuracy">高精度</string>
+    <string name="location_mode_battery_saving">电池省电</string>
+    <string name="location_mode_device_only">仅设备</string>
+    <string name="location_mode_off">关闭位置</string>
+
+    <!-- Toggle NFC shortcut -->
+    <string name="shortcut_nfc">切换 NFC</string>
+
+    <!-- Navigation bar ring targets background style -->
+    <string name="pref_navbar_ring_targets_bg_style_title">目标背景风格</string>
+    <string name="nrt_bg_style_none">无</string>
+    <string name="nrt_bg_style_light">亮</string>
+    <string name="nrt_bg_style_dark">暗</string>
+    <string name="nrt_bg_style_black">黑</string>
+
+    <!-- Smart Radio -->
+    <string name="smart_radio_action_do_nothing">什么也不做</string>
+    <string name="smart_radio_action_summary">切换到 %s</string>
+    <string name="pref_cat_smart_radio_title">智能网络</string>
+    <string name="pref_smart_radio_experimental_summary">试验中！可能会影响网络的手动切换模式</string>
+    <string name="pref_smart_radio_on_data_enabled_title">启用移动数据</string>
+    <string name="pref_smart_radio_on_data_disabled_title">禁用移动数据</string>
+
+    <!-- Pie category summary -->
+    <string name="pie_control_summary">包含 Pie 控制相关设置</string>
+    
+    <!-- Battery percent text: option for charging animation -->
+    <string name="battery_percent_text_anim_title">启用充电动画</string>
 
 </resources>

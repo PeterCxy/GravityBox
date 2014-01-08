@@ -35,6 +35,7 @@
     </string-array>
 
     <string-array name="battery_percent_text_size_entries" translatable="false">
+        <item>@string/battery_percent_text_size_larger</item>
         <item>@string/battery_percent_text_size_normal</item>
         <item>@string/battery_percent_text_size_smaller</item>
         <item>@string/battery_percent_text_size_even_smaller</item>
@@ -42,6 +43,7 @@
     </string-array>
 
     <string-array name="battery_percent_text_size_values" translatable="false">
+        <item>18</item>
         <item>16</item>
         <item>14</item>
         <item>12</item>
@@ -714,6 +716,20 @@
         <item>0</item>
         <item>1</item>
         <item>2</item>
+    </string-array>
+
+    <string-array name="nrt_bg_style_entries" translatable="false">
+        <item>@string/nrt_bg_style_none</item>
+        <item>@string/nrt_bg_style_light</item>
+        <item>@string/nrt_bg_style_dark</item>
+        <item>@string/nrt_bg_style_black</item>
+    </string-array>
+
+    <string-array name="nrt_bg_style_values" translatable="false">
+        <item>NONE</item>
+        <item>LIGHT</item>
+        <item>DARK</item>
+        <item>BLACK</item>
     </string-array>
 
 </resources>

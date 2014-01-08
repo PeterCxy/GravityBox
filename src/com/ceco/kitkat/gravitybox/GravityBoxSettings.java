@@ -85,6 +85,7 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
     public static final String PREF_KEY_BATTERY_PERCENT_TEXT = "pref_battery_percent_text";
     public static final String PREF_KEY_BATTERY_PERCENT_TEXT_SIZE = "pref_battery_percent_text_size";
     public static final String PREF_KEY_BATTERY_PERCENT_TEXT_STYLE = "pref_battery_percent_text_style";
+    public static final String PREF_KEY_BATTERY_PERCENT_TEXT_ANIM = "pref_battery_percent_text_anim";
     public static final int BATTERY_STYLE_STOCK = 1;
     public static final int BATTERY_STYLE_CIRCLE = 2;
     public static final int BATTERY_STYLE_CIRCLE_PERCENT = 3;
@@ -390,6 +391,7 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
     public static final String ACTION_PREF_BATTERY_PERCENT_TEXT_STYLE_CHANGED =
             "gravitybox.intent.action.BATTERY_PERCENT_TEXT_SIZE_CHANGED";
     public static final String EXTRA_BATTERY_PERCENT_TEXT_STYLE = "batteryPercentTextStyle";
+    public static final String EXTRA_BATTERY_PERCENT_TEXT_ANIM = "batteryPercentTextAnim";
 
     public static final String ACTION_PREF_STATUSBAR_COLOR_CHANGED = "gravitybox.intent.action.STATUSBAR_COLOR_CHANGED";
     public static final String EXTRA_SB_BG_COLOR = "bgColor";
@@ -539,9 +541,17 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
     public static final List<String> PREF_KEY_NAVBAR_RING_TARGET = new ArrayList<String>(Arrays.asList(
             "pref_navbar_ring_target0", "pref_navbar_ring_target1", "pref_navbar_ring_target2",
             "pref_navbar_ring_target3", "pref_navbar_ring_target4"));
+    public static final String PREF_KEY_NAVBAR_RING_TARGETS_BG_STYLE = "pref_navbar_ring_targets_bg_style";
     public static final String ACTION_PREF_NAVBAR_RING_TARGET_CHANGED = "gravitybox.intent.action.NAVBAR_RING_TARGET_CHANGED";
     public static final String EXTRA_RING_TARGET_INDEX = "ringTargetIndex";
     public static final String EXTRA_RING_TARGET_APP = "ringTargetApp";
+    public static final String EXTRA_RING_TARGET_BG_STYLE = "ringTargetBgStyle";
+
+    public static final String PREF_KEY_SMART_RADIO_ON_DATA_ENABLED = "pref_smart_radio_on_data_enabled";
+    public static final String PREF_KEY_SMART_RADIO_ON_DATA_DISABLED = "pref_smart_radio_on_data_disabled";
+    public static final String ACTION_PREF_SMART_RADIO_CHANGED = "gravitybox.intent.action.SMART_RADIO_CHANGED";
+    public static final String EXTRA_SR_ON_DATA_ENABLED = "smartRadioOnDataEnabled";
+    public static final String EXTRA_SR_ON_DATA_DISABLED = "smartRadioOnDataDisabled";
 
     private static final int REQ_LOCKSCREEN_BACKGROUND = 1024;
     private static final int REQ_NOTIF_BG_IMAGE_PORTRAIT = 1025;
@@ -868,6 +878,7 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
         private PreferenceScreen mPrefCatNavbarRingTargets;
         private SwitchPreference mPrefNavbarRingTargetsEnable;
         private AppPickerPreference[] mPrefNavbarRingTarget;
+        private ListPreference mPrefNavbarRingTargetsBgStyle;
 
         @SuppressWarnings("deprecation")
         @Override
@@ -1091,6 +1102,7 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
 
             mPrefCatNavbarRingTargets = (PreferenceScreen) findPreference(PREF_CAT_KEY_NAVBAR_RING_TARGETS);
             mPrefNavbarRingTargetsEnable = (SwitchPreference) findPreference(PREF_KEY_NAVBAR_RING_TARGETS_ENABLE);
+            mPrefNavbarRingTargetsBgStyle = (ListPreference) findPreference(PREF_KEY_NAVBAR_RING_TARGETS_BG_STYLE);
             mPrefNavbarRingTarget = new AppPickerPreference[PREF_KEY_NAVBAR_RING_TARGET.size()];
             for (int i = 0; i < mPrefNavbarRingTarget.length; i++) {
                 AppPickerPreference appPref = new AppPickerPreference(getActivity(), null);
@@ -1160,7 +1172,6 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
             // TODO: rework for KitKat compatibility
             getPreferenceScreen().removePreference(mPrefCatTransparencyManager);
             mPrefCatDisplay.removePreference(mPrefButtonBacklightNotif);
-            mPrefCatPhone.removePreference(mPrefCatPhoneMobileData);
 
             // Features not relevant for KitKat but keep them for potential future use
             mPrefCatStatusbarColors.removePreference(mPrefSbDaColor);
@@ -1538,6 +1549,10 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
                     mPrefNavbarRingTarget[i].setEnabled(enabled);
                 }
             }
+
+            if (key == null || key.equals(PREF_KEY_NAVBAR_RING_TARGETS_BG_STYLE)) {
+                mPrefNavbarRingTargetsBgStyle.setSummary(mPrefNavbarRingTargetsBgStyle.getEntry());
+            }
         }
 
         @Override
@@ -1560,6 +1575,10 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
                 intent.setAction(ACTION_PREF_BATTERY_PERCENT_TEXT_STYLE_CHANGED);
                 intent.putExtra(EXTRA_BATTERY_PERCENT_TEXT_STYLE,
                         prefs.getString(PREF_KEY_BATTERY_PERCENT_TEXT_STYLE, "%"));
+            } else if (key.equals(PREF_KEY_BATTERY_PERCENT_TEXT_ANIM)) {
+                intent.setAction(ACTION_PREF_BATTERY_PERCENT_TEXT_STYLE_CHANGED);
+                intent.putExtra(EXTRA_BATTERY_PERCENT_TEXT_ANIM,
+                        prefs.getBoolean(PREF_KEY_BATTERY_PERCENT_TEXT_ANIM, false));
             } else if (key.equals(PREF_KEY_QUICK_SETTINGS)) {
                 intent.setAction(ACTION_PREF_QUICKSETTINGS_CHANGED);
                 intent.putExtra(EXTRA_QS_PREFS, TileOrderActivity.updateTileList(prefs));
@@ -1857,6 +1876,10 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
                 intent.putExtra(EXTRA_RING_TARGET_INDEX,
                         PREF_KEY_NAVBAR_RING_TARGET.indexOf(key));
                 intent.putExtra(EXTRA_RING_TARGET_APP, prefs.getString(key, null));
+            } else if (key.equals(PREF_KEY_NAVBAR_RING_TARGETS_BG_STYLE)) {
+                intent.setAction(ACTION_PREF_NAVBAR_RING_TARGET_CHANGED);
+                intent.putExtra(EXTRA_RING_TARGET_BG_STYLE,
+                        prefs.getString(PREF_KEY_NAVBAR_RING_TARGETS_BG_STYLE, "NONE"));
             } else if (key.equals(PREF_KEY_NAVBAR_COLOR_ENABLE)) {
                 intent.setAction(ACTION_PREF_NAVBAR_CHANGED);
                 intent.putExtra(EXTRA_NAVBAR_COLOR_ENABLE,
@@ -1928,6 +1951,14 @@ public class GravityBoxSettings extends Activity implements GravityBoxResultRece
                 intent.setAction(ACTION_PREF_DATA_TRAFFIC_CHANGED);
                 intent.putExtra(EXTRA_DT_INACTIVITY_MODE, Integer.valueOf(
                         prefs.getString(PREF_KEY_DATA_TRAFFIC_INACTIVITY_MODE, "0")));
+            } else if (key.equals(PREF_KEY_SMART_RADIO_ON_DATA_ENABLED)) {
+                intent.setAction(ACTION_PREF_SMART_RADIO_CHANGED);
+                intent.putExtra(EXTRA_SR_ON_DATA_ENABLED,
+                        prefs.getInt(PREF_KEY_SMART_RADIO_ON_DATA_ENABLED, -1));
+            } else if (key.equals(PREF_KEY_SMART_RADIO_ON_DATA_DISABLED)) {
+                intent.setAction(ACTION_PREF_SMART_RADIO_CHANGED);
+                intent.putExtra(EXTRA_SR_ON_DATA_DISABLED,
+                        prefs.getInt(PREF_KEY_SMART_RADIO_ON_DATA_DISABLED, -1));
             }
             if (intent.getAction() != null) {
                 getActivity().sendBroadcast(intent);

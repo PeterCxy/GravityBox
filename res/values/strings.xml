@@ -816,6 +816,7 @@
     <!-- Battery percent text -->
     <string name="battery_percent_text_title">Battery percent text</string>
     <string name="battery_percent_text_size_title">Battery percent text size</string>
+    <string name="battery_percent_text_size_larger">Larger</string>
     <string name="battery_percent_text_size_normal">Normal</string>
     <string name="battery_percent_text_size_smaller">Smaller</string>
     <string name="battery_percent_text_size_even_smaller">Even smaller</string>
@@ -895,5 +896,51 @@
 
     <!-- Network mode shortcut -->
     <string name="shortcut_network_mode">Switch network mode</string>
+
+    <!-- Toggle mobile data shortcut -->
+    <string name="shortcut_mobile_data">Toggle mobile data</string>
+
+    <!-- Toggle WiFi shortcut -->
+    <string name="shortcut_wifi">Toggle WiFi</string>
+
+    <!-- Toggle Bluetooth shortcut -->
+    <string name="shortcut_bluetooth">Toggle Bluetooth</string>
+
+    <!-- Toggle WiFi AP shortcut -->
+    <string name="shortcut_wifi_ap">Toggle WiFi AP</string>
+
+    <!-- Location mode shortcut -->
+    <string name="shortcut_location_mode">Set location mode</string>
+    <string name="location_mode_high_accuracy">High accuracy</string>
+    <string name="location_mode_battery_saving">Battery saving</string>
+    <string name="location_mode_device_only">Device only</string>
+    <string name="location_mode_off">Location off</string>
+
+    <!-- Toggle NFC shortcut -->
+    <string name="shortcut_nfc">Toggle NFC</string>
+
+    <!-- Navigation bar ring targets background style -->
+    <string name="pref_navbar_ring_targets_bg_style_title">Target background style</string>
+    <string name="nrt_bg_style_none">None</string>
+    <string name="nrt_bg_style_light">Light</string>
+    <string name="nrt_bg_style_dark">Dark</string>
+    <string name="nrt_bg_style_black">Black</string>
+
+    <!-- Smart Radio -->
+    <string name="smart_radio_action_do_nothing">Do nothing</string>
+    <string name="smart_radio_action_summary">Switch to %s</string>
+    <string name="pref_cat_smart_radio_title">Smart radio</string>
+    <string name="pref_smart_radio_experimental_summary">EXPERIMENTAL! May affect manual network mode switching</string>
+    <string name="pref_smart_radio_on_data_enabled_title">On mobile data enabled</string>
+    <string name="pref_smart_radio_on_data_disabled_title">On mobile data disabled</string>
+
+    <!-- Pie category summary -->
+    <string name="pie_control_summary">Contains Pie related settings</string>
+
+    <!-- Battery percent text: option for charging animation -->
+    <string name="battery_percent_text_anim_title">Enable charging animation</string>
+
+    <!-- Shortcut for Google Now -->
+    <string name="shortcut_google_now">Google Now</string>
 
 </resources>

@@ -46,7 +46,10 @@ import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
 import android.view.ViewConfiguration;
 import android.widget.Toast;
+
 import com.ceco.kitkat.gravitybox.R;
+import com.ceco.kitkat.gravitybox.shortcuts.ShortcutActivity;
+
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XSharedPreferences;
@@ -72,8 +75,13 @@ public class ModHwKeys {
     public static final String ACTION_EXPAND_NOTIFICATIONS = "gravitybox.intent.action.EXPAND_NOTIFICATIONS";
     public static final String ACTION_EXPAND_QUICKSETTINGS = "gravitybox.intent.action.EXPAND_QUICKSETTINGS";
     public static final String ACTION_TOGGLE_TORCH = "gravitybox.intent.action.TOGGLE_TORCH";
+    public static final String ACTION_SHOW_RECENT_APPS = "gravitybox.intent.action.SHOW_RECENT_APPS";
+    public static final String ACTION_SHOW_APP_LAUCNHER = "gravitybox.intent.action.SHOW_APP_LAUNCHER";
+    public static final String ACTION_TOGGLE_ROTATION_LOCK = "gravitybox.intent.action.TOGGLE_ROTATION_LOCK";
+    public static final String ACTION_SLEEP = "gravitybox.intent.action.SLEEP";
 
     public static final String SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS = "globalactions";
+    public static final String SYSTEM_DIALOG_REASON_RECENT_APPS = "recentapps";
 
     private static Class<?> classActivityManagerNative;
     private static Object mPhoneWindowManager;
@@ -271,6 +279,14 @@ public class ModHwKeys {
                 expandSettingsPanel();
             } else if (action.equals(ACTION_TOGGLE_TORCH)) {
                 toggleTorch();
+            } else if (action.equals(ACTION_SHOW_RECENT_APPS)) {
+                toggleRecentApps();
+            } else if (action.equals(ACTION_SHOW_APP_LAUCNHER)) {
+                showAppLauncher();
+            } else if (action.equals(ACTION_TOGGLE_ROTATION_LOCK)) {
+                toggleAutoRotation();
+            } else if (action.equals(ACTION_SLEEP)) {
+                goToSleep();
             }
         }
     };
@@ -703,6 +719,10 @@ public class ModHwKeys {
             intentFilter.addAction(ACTION_EXPAND_NOTIFICATIONS);
             intentFilter.addAction(ACTION_EXPAND_QUICKSETTINGS);
             intentFilter.addAction(ACTION_TOGGLE_TORCH);
+            intentFilter.addAction(ACTION_SHOW_RECENT_APPS);
+            intentFilter.addAction(ACTION_SHOW_APP_LAUCNHER);
+            intentFilter.addAction(ACTION_TOGGLE_ROTATION_LOCK);
+            intentFilter.addAction(ACTION_SLEEP);
             mContext.registerReceiver(mBroadcastReceiver, intentFilter);
 
             if (DEBUG) log("Phone window manager initialized");
@@ -1059,9 +1079,16 @@ public class ModHwKeys {
 
     private static void toggleRecentApps() {
         try {
-            XposedHelpers.callMethod(mPhoneWindowManager, "toggleRecentApps");
+            XposedHelpers.callMethod(mPhoneWindowManager, "sendCloseSystemWindows", 
+                    SYSTEM_DIALOG_REASON_RECENT_APPS);
         } catch (Throwable t) {
-            XposedBridge.log(t);
+            log("Error executing sendCloseSystemWindows(SYSTEM_DIALOG_REASON_RECENT_APPS): " + t.getMessage());
+        }
+        try {
+            final Object sbService = XposedHelpers.callMethod(mPhoneWindowManager, "getStatusBarService"); 
+            XposedHelpers.callMethod(sbService, "toggleRecentApps");
+        } catch (Throwable t) {
+            log("Error executing toggleRecentApps(): " + t.getMessage());
         }
     }
 
@@ -1084,8 +1111,16 @@ public class ModHwKeys {
                         }
 
                         Intent i = Intent.parseUri(appInfo, 0);
-                        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        mContext.startActivity(i);
+                        // if intent is a GB action of broadcast type, handle it directly here
+                        if (ShortcutActivity.isGbBroadcastShortcut(i)) {
+                            Intent newIntent = new Intent(i.getStringExtra(ShortcutActivity.EXTRA_ACTION));
+                            newIntent.putExtras(i);
+                            mContext.sendBroadcast(newIntent);
+                        // otherwise start activity
+                        } else {
+                            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            mContext.startActivity(i);
+                        }
                     } catch (ActivityNotFoundException e) {
                         Toast.makeText(mContext, mStrCustomAppMissing, Toast.LENGTH_SHORT).show();
                     } catch (Throwable t) {
@@ -1272,9 +1307,15 @@ public class ModHwKeys {
 
     private static void showGlobalActionsDialog() {
         try {
-            XposedHelpers.callMethod(mPhoneWindowManager, "sendCloseSystemWindows", 
-                    SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS);
-            XposedHelpers.callMethod(mPhoneWindowManager, "showGlobalActionsDialog");
+            Handler handler = (Handler) XposedHelpers.getObjectField(mPhoneWindowManager, "mHandler");
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    XposedHelpers.callMethod(mPhoneWindowManager, "sendCloseSystemWindows", 
+                            SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS);
+                    XposedHelpers.callMethod(mPhoneWindowManager, "showGlobalActionsDialog");
+                }
+            });
         } catch (Throwable t) {
             log("Error executing PhoneWindowManager.showGlobalActionsDialog(): " + t.getMessage());
         }
