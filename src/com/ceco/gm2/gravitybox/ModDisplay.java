@@ -397,7 +397,7 @@ public class ModDisplay {
                         if (bmp == null) return;
 
                         final Handler h = (Handler) XposedHelpers.getObjectField(param.thisObject, "mHandler");
-                        new Thread(new Runnable() {
+                        Thread kisThread = new Thread(new Runnable() {
                              @Override
                              public void run() {
                                  final WakeLock wakeLock = mPm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
@@ -488,7 +488,9 @@ public class ModDisplay {
                                  intent.setComponent(cn);
                                  mContext.bindService(intent, mKisServiceConn, Context.BIND_AUTO_CREATE);
                              }
-                         }).start();;
+                        });
+                        // Give keyguard a chance to do its initialization
+                        h.postDelayed(kisThread, 2000);
                     }
                 }
             });

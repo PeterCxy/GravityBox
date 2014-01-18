@@ -47,7 +47,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.SystemClock;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.TypedValue;
@@ -84,7 +83,7 @@ public class ModLockscreen {
     private static final String CLASS_KG_VIEW_BASE = CLASS_PATH + ".KeyguardViewBase";
     private static final String CLASS_KG_WIDGET_PAGER = CLASS_PATH + ".KeyguardWidgetPager";
     private static final String CLASS_KG_ACTIVITY_LAUNCHER = CLASS_PATH + ".KeyguardActivityLauncher";
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     private static final boolean DEBUG_ARC = false;
     private static final boolean DEBUG_KIS = true;
 
@@ -114,8 +113,7 @@ public class ModLockscreen {
     private static int mPrevGlowPadState;
     private static PointF mStartGlowPadPoint;
     private static float mDisplayDensity;
-    private static boolean mReceiverRegistered;
-    private static boolean mFirstRun;
+    private static ImageView mLockScreenWallpaperImage;
 
     // Battery Arc
     private static HandleDrawable mHandleDrawable;
@@ -131,20 +129,9 @@ public class ModLockscreen {
         XposedBridge.log(TAG + ": " + message);
     }
 
-    private static BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(KeyguardImageService.ACTION_KEYGUARD_IMAGE_UPDATED)) {
-                if (DEBUG_KIS) log("ACTION_KEYGUARD_IMAGE_UPDATED received");
-                // TODO: notify that image has been received
-            }
-        }
-    };
-
     public static void initZygote(final XSharedPreferences prefs) {
         try {
             mPrefs = prefs;
-            mFirstRun = true;
 
             final Class<?> kgViewManagerClass = XposedHelpers.findClass(CLASS_KGVIEW_MANAGER, null);
             final Class<?> kgHostViewClass = XposedHelpers.findClass(CLASS_KG_HOSTVIEW, null);
@@ -173,6 +160,13 @@ public class ModLockscreen {
                             param.thisObject, "mKeyguardHost");
                     WindowManager.LayoutParams windowLayoutParams = (WindowManager.LayoutParams) 
                             XposedHelpers.getObjectField(param.thisObject, "mWindowLayoutParams");
+                    FrameLayout keyguardView = (FrameLayout) XposedHelpers.getObjectField(
+                            param.thisObject, "mKeyguardView");
+
+                    Context context = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                    if (context != null && mGbContext == null) {
+                        mGbContext = context.createPackageContext(GravityBox.PACKAGE_NAME, 0);
+                    }
 
                     final String bgType = prefs.getString(
                             GravityBoxSettings.PREF_KEY_LOCKSCREEN_BACKGROUND,
@@ -180,38 +174,6 @@ public class ModLockscreen {
 
                     if (!bgType.equals(GravityBoxSettings.LOCKSCREEN_BG_DEFAULT)) {
                         windowLayoutParams.flags &= ~WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
-                    } else {
-                        windowLayoutParams.flags |= WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
-                    }
-                    viewManager.updateViewLayout(keyGuardHost, windowLayoutParams);
-                    if (DEBUG) log("maybeCreateKeyguardLocked: layout updated");
-                }
-            });
-
-            XposedHelpers.findAndHookMethod(kgViewManagerClass, "inflateKeyguardView",
-                    Bundle.class, new XC_MethodHook() {
-                @Override
-                protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
-                    mPrefs.reload();
-
-                    FrameLayout keyguardView = (FrameLayout) XposedHelpers.getObjectField(
-                            param.thisObject, "mKeyguardView");
-
-                    final String bgType = mPrefs.getString(
-                            GravityBoxSettings.PREF_KEY_LOCKSCREEN_BACKGROUND, 
-                            GravityBoxSettings.LOCKSCREEN_BG_DEFAULT);
-
-                    Context context = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
-                    if (!mReceiverRegistered) {
-                        IntentFilter intentFilter = new IntentFilter();
-                        intentFilter.addAction(KeyguardImageService.ACTION_KEYGUARD_IMAGE_UPDATED);
-                        context.registerReceiver(mBroadcastReceiver, intentFilter);
-                    }
-                    if (context != null && mGbContext == null) {
-                        mGbContext = context.createPackageContext(GravityBox.PACKAGE_NAME, 0);
-                    }
-
-                    if (!bgType.equals(GravityBoxSettings.LOCKSCREEN_BG_DEFAULT)) {
                         FrameLayout flayout = new FrameLayout(context);
                         flayout.setTag("gb_wallpaper");
                         flayout.setLayoutParams(new LayoutParams(
@@ -226,31 +188,49 @@ public class ModLockscreen {
                             String wallpaperFile = mGbContext.getFilesDir() + "/lockwallpaper";
                             customBg = BitmapFactory.decodeFile(wallpaperFile);
                         } else if (bgType.equals(GravityBoxSettings.LOCKSCREEN_BG_LAST_SCREEN)) {
-                            // TODO: wait until intent is received
-                            if (!mFirstRun) {
-                                SystemClock.sleep(2000);
-                            }
                             String kisImageFile = mGbContext.getFilesDir() + "/kis_image.png";
                             customBg = BitmapFactory.decodeFile(kisImageFile);
-                            if (DEBUG_KIS) log("inflateKeyguardView: last screen image set");
-                            mFirstRun = false;
                         }
                         if (customBg != null) {
                             if (mPrefs.getBoolean(GravityBoxSettings.PREF_KEY_LOCKSCREEN_BACKGROUND_BLUR_EFFECT, false)) {
                                 customBg = Utils.blurBitmap(context, customBg);
                             }
                             Drawable d = new BitmapDrawable(context.getResources(), customBg);
-                            ImageView mLockScreenWallpaperImage = new ImageView(context);
+                            mLockScreenWallpaperImage = new ImageView(context);
                             mLockScreenWallpaperImage.setScaleType(ScaleType.CENTER_CROP);
                             mLockScreenWallpaperImage.setImageDrawable(d);
                             flayout.addView(mLockScreenWallpaperImage, -1, -1);
-                            if (DEBUG) log("inflateKeyguardView: custom background set");
+                            if (bgType.equals(GravityBoxSettings.LOCKSCREEN_BG_LAST_SCREEN)) {
+                                context.registerReceiver(new BroadcastReceiver() {
+                                    @Override
+                                    public void onReceive(final Context context, Intent intent) {
+                                        String kisImageFile = mGbContext.getFilesDir() + "/kis_image.png";
+                                        final Drawable d = new BitmapDrawable(context.getResources(), 
+                                                BitmapFactory.decodeFile(kisImageFile));
+                                        // We have to make sure view is updated on UI thread
+                                        mLockScreenWallpaperImage.post(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                mLockScreenWallpaperImage.setImageDrawable(d);
+                                                log("Last screen background updated");
+                                            }
+                                        });
+                                        context.unregisterReceiver(this);
+                                    }
+                                }, new IntentFilter(KeyguardImageService.ACTION_KEYGUARD_IMAGE_UPDATED));
+                            }
+                            if (DEBUG) log("maybeCreateKeyguardLocked: custom background set");
                         }
                         final float opacity = prefs.getInt(
                                 GravityBoxSettings.PREF_KEY_LOCKSCREEN_BACKGROUND_OPACITY, 50) / 100f;
                         flayout.setAlpha(opacity);
                         keyguardView.addView(flayout,0);
+                    } else {
+                        windowLayoutParams.flags |= WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
                     }
+
+                    viewManager.updateViewLayout(keyGuardHost, windowLayoutParams);
+                    if (DEBUG) log("maybeCreateKeyguardLocked: layout updated");
                 }
             });
 
