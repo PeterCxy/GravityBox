@@ -66,16 +66,19 @@
     <string name="quick_settings_qr_recording">Grabando&#8230;</string>
     <string name="quick_settings_qr_recorded">Grabado</string>
     <string name="quick_settings_qr_record">Mantén pulsado para grabar</string>
-    <string name="quick_settings_qr_recording_notif">Toca para parar de grabar</string>
+    <string name="quick_settings_qr_recording_notif">Toca para parar grabación</string>
     <string name="quick_settings_expanded_desktop_disabled">Desactivado</string>
     <string name="quick_settings_expanded_desktop_normal">Normal</string>
     <string name="quick_settings_expanded_desktop_expanded">Expandido</string>
-    <string name="quick_settings_stay_awake_on">Permanecer despierto activado</string>
-    <string name="quick_settings_stay_awake_off">Permanecer despierto desactivado</string>
+    <string name="quick_settings_stay_awake_on">Permanecer despierto</string>
+    <string name="quick_settings_stay_awake_off">No permanecer despierto</string>
     <string name="quick_settings_nfc_on">NFC activado</string>
     <string name="quick_settings_nfc_off">NFC desactivado</string>
     <string name="quick_settings_camera_error_connect">Imposible conectar con la cámara</string>
-
+    <string name="quick_settings_usb_tether_off">Desconectado</string>
+    <string name="quick_settings_usb_tether_connected">Tethering off</string>
+    <string name="quick_settings_usb_tether_on">Tethering</string>
+ 
     <!--  QuickSettings settings -->
     <string name="quick_settings_title">Ajustes rápidos de la barra de estado</string>
     <string name="quick_settings_summary">Permite mostrar u ocultar los ajustes rápidos en la barra de estado</string>
@@ -104,6 +107,7 @@
     <string name="qs_tile_screenshot">Captura de pantalla</string>
     <string name="qs_tile_nfc">NFC</string>
     <string name="qs_tile_camera">Cámara</string>
+    <string name="qs_tile_usb_tethering">USB Tethering</string>
 
     <!-- Color Picker -->
     <string name="dialog_color_picker">Selector de color</string>
@@ -151,6 +155,7 @@
     <string name="lockscreen_bg_default">Imagen de fondo predeterminada</string>
     <string name="lockscreen_bg_color">Relleno de color</string>
     <string name="lockscreen_bg_image">Imagen personalizada</string>
+    <string name="lockscreen_bg_last_screen">Última pantalla</string>
     <string name="pref_lockscreen_bg_color_title">Establecer color personalizado</string>
     <string name="pref_lockscreen_bg_color_summary">Permite establecer un color de fondo personalizado en la pantalla de bloqueo</string>
     <string name="pref_lockscreen_bg_image_title">Establecer imagen personalizada</string>
@@ -196,7 +201,6 @@
 
     <!-- Lockscreen rotation -->
     <string name="pref_lockscreen_rotation_title">Rotar en pantalla de bloqueo</string>
-    <string name="pref_lockscreen_rotation_summary">ADVERTENCIA: puede cambiar los objetivos del anillo de desbloqueo en el caso de que la pantalla de bloqueo AOSP haya sido modificada por el fabricante</string>
 
     <!-- Lockscreen menu key -->
     <string name="pref_lockscreen_menu_key_title">Activar botón menú</string>
@@ -398,7 +402,7 @@
     <string name="pie_control_menu_title">Mostrar siempre botón de menú</string>
 
     <!-- Ringer mode tile (for non-MTK) -->
-    <string name="qs_tile_ringer_mode">Modo de tono de llamada</string>
+    <string name="qs_tile_ringer_mode">Modo de sonido</string>
 
     <!-- Clock settings category -->
     <string name="pref_cat_clock_settings_title">Ajustes del reloj</string>
@@ -588,7 +592,7 @@
     <string name="dt_position_auto">Automática (centro o derecha dependiendo de la posición del reloj)</string>
     <string name="dt_position_left">Izquierda</string>
     <string name="dt_position_right">Derecha</string>
-    <string name="pref_data_traffic_size_title">Tamaños</string>
+    <string name="pref_data_traffic_size_title">Tamaño</string>
     <string name="dt_size_normal">Normal</string>
     <string name="dt_size_smaller">Pequeño</string>
     <string name="dt_size_smallest">Muy pequeño</string>
@@ -616,8 +620,8 @@
     <string name="hwkey_recents_longpress_dialog_title">Acción con pulsación prolongada en botón multitarea</string>
 
     <!-- Lockscreen battery arc -->
-    <string name="pref_lockscreen_battery_arc_title">Mostrar arco de batería</string>
-    <string name="pref_lockscreen_battery_arc_summary">Muestra un arco con el estado de la batería alrededor del anillo de desbloqueo</string>
+    <string name="pref_lockscreen_battery_arc_title">Mostrar batería circular</string>
+    <string name="pref_lockscreen_battery_arc_summary">Muestra un círculo con el estado de la batería alrededor del anillo de desbloqueo</string>
 
     <!-- HW Key Actions: toggle torch -->
     <string name="hwkey_action_torch">Activar/desactivar linterna</string>
@@ -768,7 +772,7 @@
     <string name="pref_volume_panel_timeout_title">Ocultar panel de volumen tras</string>
 
     <!-- Ringer tile modes -->
-    <string name="pref_qs_ringer_mode_title">Modos de la casilla de modo de tono</string>
+    <string name="pref_qs_ringer_mode_title">Modos de la casilla de modo de sonido</string>
     <string name="ringer_mode_silent">Silencio</string>
     <string name="ringer_mode_vibrate">Vibrar</string>
     <string name="ringer_mode_sound">Sonar</string>
@@ -935,4 +939,73 @@
 
     <!-- Pie category summary -->
     <string name="pie_control_summary">Contiene los ajustes relacionados con los controles \'Pie\'</string>
+
+    <!-- Shortcut for Google Now -->
+    <string name="shortcut_google_now">Google Now</string>
+    
+    <!-- Lockscreen background opacity -->
+    <string name="pref_lockscreen_bg_opacity_title">Opacidad del fondo</string>
+    <string name="pref_lockscreen_bg_opacity_summary">Solo se aplica a un fondo personalizado y album art</string>
+    
+    <!-- GB Actions: Media control shorctut -->
+    <string name="shortcut_media_control">Control multimedia</string>
+    <string name="shortcut_media_play_pause">Reproducir/pausa</string>
+    <string name="shortcut_media_previous">Anterior</string>
+    <string name="shortcut_media_next">Siguiente</string>
+ 
+    <!-- Battery percent text: charging indication -->
+    <string name="battery_percent_text_charging_title">Indicación de carga</string>
+    <string name="bpt_charging_none">Ninguna</string>
+    <string name="bpt_charging_static">Estática</string>
+    <string name="bpt_charging_animated">Animada</string>
+    
+    <!-- Lockscreen statusbar clock visibility -->
+    <string name="pref_lockscreen_sb_clock_title">Visibilidad del reloj de la barra de estado</string>
+    <string name="lockscreen_sb_clock_hide_on_widget">Ocultar con widgets con reloj</string>
+    <string name="lockscreen_sb_clock_always_hide">Ocultar siempre</string>
+    <string name="lockscreen_sb_clock_always_show">Mostrar siempre</string>
+    
+    <!-- QuickApp Tile #2 -->
+    <string name="pref_cat_quickapp_tile_2_title">Ajustes de la casilla de app rápida 2</string>
+    <string name="qs_tile_quickapp_2">Aplicación rápida 2</string>
+    
+    <!-- Force music volume control -->
+    <string name="pref_vol_force_music_control_title">Forzar control de volumen de multimedia</string>
+    <string name="pref_vol_force_music_control_summary">Al activarlo, los botones de volumen controlan el volumen multimedia en lugar del de llamadas</string>
+
+    <!-- Misc tweaks: category for recents panel related tweaks -->
+    <string name="pref_cat_misc_recents_panel_title">Panel de recientes</string>
+    
+    <!-- Misc tweaks: category for other settings -->
+    <string name="pref_cat_misc_other_title">Otros ajustes</string>
+  
+    <!-- Disable fullscreen keyboard -->
+    <string name="pref_ime_fullscreen_disable_title">Desactivar teclado a pantalla completa</string>
+ 
+    <!-- Torch auto-off -->
+    <string name="pref_torch_auto_off_title">Apagar linterna automáticamente</string>
+    <string name="pref_torch_auto_off_summary">Apaga la linterna tras el tiempo especificado. Establecer a 0 para desactivar (no recomendado)</string>
+
+    <!-- Swap volume keys when the screen is rotated -->
+    <string name="pref_vol_swap_keys_title">Reorientar botones de volumen</string>
+    <string name="pref_vol_swap_keys_summary">Intercambiar botones de volumen cuando se rota la pantalla</string>
+    
+    <!-- Lockscreen: custom background blur effect -->
+    <string name="pref_lockscreen_bg_blur_effect_title">Efecto de desenfoque</string>
+  
+    <!-- Tiles: Disable tile spanning -->
+    <string name="pref_qs_tile_span_disable_title">Desactivar espaciado de casillas</string>
+    <string name="pref_qs_tile_span_disable_summary">Desactiva el espaciado de las casillas de usuario, brillo y ajustes en modo paisaje</string>
+
+    <!-- Force overflow menu button -->
+    <string name="pref_force_overflow_menu_button_title">Forzar desbordamiento del botón menú</string>
+    <string name="pref_force_overflow_menu_button_summary">Requiere reinicio</string>
+    
+    <!-- Navbar: always on bottom -->
+    <string name="pref_navbar_always_on_bottom_title">Siempre abajo</string>
+    <string name="pref_navbar_always_on_bottom_summary">Fuerza a la barra de navegación a permanecer abajo en orientación panorámica (requiere reinicio)</string>
+
+    <!-- Summary for Home key long-press action disabled because of navring targets -->
+    <string name="pref_hwkey_home_longpress_disabled_summary">No se puede usar mientras estén activados los objetivos en el anillo de la barra de navegación</string>
+	
 </resources>

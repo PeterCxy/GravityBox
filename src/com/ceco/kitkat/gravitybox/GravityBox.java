@@ -55,7 +55,7 @@ public class GravityBox implements IXposedHookZygoteInit, IXposedHookInitPackage
         // Common
         ModElectronBeam.initZygote(prefs);
         ModVolumeKeySkipTrack.init(prefs);
-        ModVolKeyCursor.initZygote(prefs);
+        ModInputMethod.initZygote(prefs);
         PhoneWrapper.initZygote(prefs);
         ModLowBatteryWarning.initZygote(prefs);
         ModDisplay.initZygote(prefs);
@@ -65,6 +65,11 @@ public class GravityBox implements IXposedHookZygoteInit, IXposedHookInitPackage
         ConnectivityServiceWrapper.initZygote();
         PermissionGranter.initZygote();
         ModVolumePanel.initZygote(prefs);
+        ModViewConfig.initZygote(prefs);
+
+        if (prefs.getBoolean(GravityBoxSettings.PREF_KEY_NAVBAR_OVERRIDE, false)) {
+            ModNavigationBar.initZygote(prefs);
+        }
     }
 
     @Override

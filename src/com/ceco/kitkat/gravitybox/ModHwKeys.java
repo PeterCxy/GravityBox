@@ -79,6 +79,10 @@ public class ModHwKeys {
     public static final String ACTION_SHOW_APP_LAUCNHER = "gravitybox.intent.action.SHOW_APP_LAUNCHER";
     public static final String ACTION_TOGGLE_ROTATION_LOCK = "gravitybox.intent.action.TOGGLE_ROTATION_LOCK";
     public static final String ACTION_SLEEP = "gravitybox.intent.action.SLEEP";
+    public static final String ACTION_MEDIA_CONTROL = "gravitybox.intent.action.MEDIA_CONTROL";
+    public static final String EXTRA_MEDIA_CONTROL = "mediaControl";
+    public static final String ACTION_KILL_FOREGROUND_APP = "gravitybox.intent.action.KILL_FOREGROUND_APP";
+    public static final String ACTION_SWITCH_PREVIOUS_APP = "gravitybox.intent.action.SWICTH_PREVIOUS_APP";
 
     public static final String SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS = "globalactions";
     public static final String SYSTEM_DIALOG_REASON_RECENT_APPS = "recentapps";
@@ -287,6 +291,18 @@ public class ModHwKeys {
                 toggleAutoRotation();
             } else if (action.equals(ACTION_SLEEP)) {
                 goToSleep();
+            } else if (action.equals(ACTION_MEDIA_CONTROL) && intent.hasExtra(EXTRA_MEDIA_CONTROL)) {
+                final int keyCode = intent.getIntExtra(EXTRA_MEDIA_CONTROL, 0);
+                if (DEBUG) log("MEDIA CONTROL: keycode=" + keyCode);
+                if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE ||
+                        keyCode == KeyEvent.KEYCODE_MEDIA_PREVIOUS ||
+                        keyCode == KeyEvent.KEYCODE_MEDIA_NEXT) {
+                    injectKey(keyCode);
+                }
+            } else if (action.equals(ACTION_KILL_FOREGROUND_APP) && mPhoneWindowManager != null) {
+                killForegroundApp();
+            } else if (action.equals(ACTION_SWITCH_PREVIOUS_APP) && mPhoneWindowManager != null) {
+                switchToLastApp();
             }
         }
     };
@@ -723,6 +739,9 @@ public class ModHwKeys {
             intentFilter.addAction(ACTION_SHOW_APP_LAUCNHER);
             intentFilter.addAction(ACTION_TOGGLE_ROTATION_LOCK);
             intentFilter.addAction(ACTION_SLEEP);
+            intentFilter.addAction(ACTION_MEDIA_CONTROL);
+            intentFilter.addAction(ACTION_KILL_FOREGROUND_APP);
+            intentFilter.addAction(ACTION_SWITCH_PREVIOUS_APP);
             mContext.registerReceiver(mBroadcastReceiver, intentFilter);
 
             if (DEBUG) log("Phone window manager initialized");

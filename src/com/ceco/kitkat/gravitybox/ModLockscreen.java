@@ -27,16 +27,21 @@ import android.app.Activity;
 import android.appwidget.AppWidgetHostView;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProviderInfo;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PointF;
+import android.graphics.PorterDuff;
 import android.graphics.RectF;
-import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -44,16 +49,10 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.TypedValue;
 import android.view.View.OnLongClickListener;
-import android.view.ViewConfiguration;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.view.View;
-import android.view.ViewManager;
-import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.ImageView.ScaleType;
 import android.widget.TextView;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
@@ -68,6 +67,7 @@ public class ModLockscreen {
     public static final String PACKAGE_NAME = "com.android.keyguard";
 
     private static final String CLASS_KGVIEW_MANAGER = CLASS_PATH + ".KeyguardViewManager";
+    private static final String CLASS_KGVIEW_MANAGER_HOST = CLASS_KGVIEW_MANAGER + ".ViewManagerHost";
     private static final String CLASS_KG_HOSTVIEW = CLASS_PATH + ".KeyguardHostView";
     private static final String CLASS_KG_SELECTOR_VIEW = CLASS_PATH + ".KeyguardSelectorView";
     private static final String CLASS_TRIGGER_LISTENER = CLASS_PATH + ".KeyguardSelectorView$1";
@@ -80,6 +80,7 @@ public class ModLockscreen {
     private static final String CLASS_KG_ACTIVITY_LAUNCHER = CLASS_PATH + ".KeyguardActivityLauncher";
     private static final boolean DEBUG = false;
     private static final boolean DEBUG_ARC = false;
+    private static final boolean DEBUG_KIS = false;
 
     private static final int STATUSBAR_DISABLE_RECENT = 0x01000000;
     private static final int STATUSBAR_DISABLE_NOTIFICATION_TICKER = 0x00080000;
@@ -105,6 +106,13 @@ public class ModLockscreen {
     private static Handler mHandler;
     private static Context mGbContext;
     private static boolean mTorchEnabled;
+    private static int mPrevGlowPadState;
+    private static PointF mStartGlowPadPoint;
+    private static float mDisplayDensity;
+    private static boolean mReceiverRegistered;
+    private static Class<?> mKgUpdateMonitorClass;
+    private static boolean mBackgroundAlreadySet;
+    private static boolean mIsLastScreenBackground;
 
     // Battery Arc
     private static HandleDrawable mHandleDrawable;
@@ -119,6 +127,16 @@ public class ModLockscreen {
     private static void log(String message) {
         XposedBridge.log(TAG + ": " + message);
     }
+
+    private static BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(KeyguardImageService.ACTION_KEYGUARD_IMAGE_UPDATED)) {
+                if (DEBUG_KIS) log("ACTION_KEYGUARD_IMAGE_UPDATED received");
+                setLastScreenBackground(context);
+            }
+        }
+    };
 
     public static void initPackageResources(final XSharedPreferences prefs, final InitPackageResourcesParam resparam) {
         try {
@@ -139,9 +157,10 @@ public class ModLockscreen {
             final Class<?> triggerListenerClass = XposedHelpers.findClass(CLASS_TRIGGER_LISTENER, classLoader);
             final Class<?> kgAbsKeyInputViewClass = XposedHelpers.findClass(CLASS_KG_ABS_KEY_INPUT_VIEW, classLoader);
             final Class<?> kgViewMediatorClass = XposedHelpers.findClass(CLASS_KGVIEW_MEDIATOR, classLoader);
-            final Class<?> kgUpdateMonitorClass = XposedHelpers.findClass(CLASS_KG_UPDATE_MONITOR, classLoader);
+            mKgUpdateMonitorClass = XposedHelpers.findClass(CLASS_KG_UPDATE_MONITOR, classLoader);
             final Class<?> kgWidgetPagerClass = XposedHelpers.findClass(CLASS_KG_WIDGET_PAGER, classLoader);
             final Class<?> kgActivityLauncherClass = XposedHelpers.findClass(CLASS_KG_ACTIVITY_LAUNCHER, classLoader);
+            final Class<?> kgViewManagerHostClass = XposedHelpers.findClass(CLASS_KGVIEW_MANAGER_HOST, classLoader);
 
             XposedHelpers.findAndHookMethod(kgViewManagerClass, "maybeCreateKeyguardLocked", 
                     boolean.class, boolean.class, Bundle.class, new XC_MethodHook() {
@@ -149,87 +168,63 @@ public class ModLockscreen {
                 @Override
                 protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
                     mPrefs.reload();
-                    ViewManager viewManager = (ViewManager) XposedHelpers.getObjectField(
-                            param.thisObject, "mViewManager");
-                    FrameLayout keyGuardHost = (FrameLayout) XposedHelpers.getObjectField(
-                            param.thisObject, "mKeyguardHost");
-                    WindowManager.LayoutParams windowLayoutParams = (WindowManager.LayoutParams) 
-                            XposedHelpers.getObjectField(param.thisObject, "mWindowLayoutParams");
+
+                    Context context = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                    if (!mReceiverRegistered) {
+                        IntentFilter intentFilter = new IntentFilter();
+                        intentFilter.addAction(KeyguardImageService.ACTION_KEYGUARD_IMAGE_UPDATED);
+                        context.registerReceiver(mBroadcastReceiver, intentFilter);
+                    }
+                    if (mGbContext == null) {
+                        mGbContext = context.createPackageContext(GravityBox.PACKAGE_NAME, 0);
+                        if (DEBUG) log("mGbContext created");
+                    }
 
                     final String bgType = prefs.getString(
                             GravityBoxSettings.PREF_KEY_LOCKSCREEN_BACKGROUND,
                             GravityBoxSettings.LOCKSCREEN_BG_DEFAULT);
 
-                    if (!bgType.equals(GravityBoxSettings.LOCKSCREEN_BG_DEFAULT)) {
-                        windowLayoutParams.flags &= ~WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
-                    } else {
-                        windowLayoutParams.flags |= WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
-                    }
-                    viewManager.updateViewLayout(keyGuardHost, windowLayoutParams);
-                    if (DEBUG) log("maybeCreateKeyguardLocked: layout updated");
-                }
-            });
-
-            XposedHelpers.findAndHookMethod(kgViewManagerClass, "inflateKeyguardView",
-                    Bundle.class, new XC_MethodHook() {
-                @Override
-                protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
-                    mPrefs.reload();
-
-                    FrameLayout keyguardView = (FrameLayout) XposedHelpers.getObjectField(
-                            param.thisObject, "mKeyguardView");
-
-                    final String bgType = mPrefs.getString(
-                            GravityBoxSettings.PREF_KEY_LOCKSCREEN_BACKGROUND, 
-                            GravityBoxSettings.LOCKSCREEN_BG_DEFAULT);
-
-                    Context context = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
-                    if (context != null && mGbContext == null) {
-                        mGbContext = context.createPackageContext(GravityBox.PACKAGE_NAME, 0);
+                    Bitmap customBg = null;
+                    mBackgroundAlreadySet = false;
+                    if (bgType.equals(GravityBoxSettings.LOCKSCREEN_BG_COLOR)) {
+                        int color = mPrefs.getInt(
+                                GravityBoxSettings.PREF_KEY_LOCKSCREEN_BACKGROUND_COLOR, Color.BLACK);
+                        customBg = Utils.drawableToBitmap(new ColorDrawable(color));
+                    } else if (bgType.equals(GravityBoxSettings.LOCKSCREEN_BG_IMAGE)) {
+                        String wallpaperFile = mGbContext.getFilesDir() + "/lockwallpaper";
+                        customBg = BitmapFactory.decodeFile(wallpaperFile);
+                    } else if (bgType.equals(GravityBoxSettings.LOCKSCREEN_BG_LAST_SCREEN)) {
+                        setLastScreenBackground(context);
                     }
 
-                    if (!bgType.equals(GravityBoxSettings.LOCKSCREEN_BG_DEFAULT)) {
-                        FrameLayout flayout = new FrameLayout(context);
-                        flayout.setTag("gb_wallpaper");
-                        flayout.setLayoutParams(new LayoutParams(
-                                ViewGroup.LayoutParams.MATCH_PARENT, 
-                                ViewGroup.LayoutParams.MATCH_PARENT));
-                        if (bgType.equals(GravityBoxSettings.LOCKSCREEN_BG_COLOR)) {
-                            int color = mPrefs.getInt(
-                                    GravityBoxSettings.PREF_KEY_LOCKSCREEN_BACKGROUND_COLOR, Color.BLACK);
-                            flayout.setBackgroundColor(color);
-                            if (DEBUG) log("inflateKeyguardView: background color set");
-                        } else if (bgType.equals(GravityBoxSettings.LOCKSCREEN_BG_IMAGE)) {
-                            String wallpaperFile = mGbContext.getFilesDir() + "/lockwallpaper";
-                            Bitmap background = BitmapFactory.decodeFile(wallpaperFile);
-                            Drawable d = new BitmapDrawable(context.getResources(), background);
-                            ImageView mLockScreenWallpaperImage = new ImageView(context);
-                            mLockScreenWallpaperImage.setScaleType(ScaleType.CENTER_CROP);
-                            mLockScreenWallpaperImage.setImageDrawable(d);
-                            flayout.addView(mLockScreenWallpaperImage, -1, -1);
-                            if (DEBUG) log("inflateKeyguardView: background image set");
+                    if (customBg != null) {
+                        if (mPrefs.getBoolean(GravityBoxSettings.PREF_KEY_LOCKSCREEN_BACKGROUND_BLUR_EFFECT, false)) {
+                            customBg = Utils.blurBitmap(context, customBg);
                         }
-                        keyguardView.addView(flayout,0);
+                        Object kgUpdateMonitor = XposedHelpers.callStaticMethod(mKgUpdateMonitorClass, 
+                                "getInstance", context);
+                        XposedHelpers.callMethod(kgUpdateMonitor, "dispatchSetBackground", customBg);
+                        if (DEBUG) log("maybeCreateKeyguardLocked: custom wallpaper set");
                     }
                 }
             });
 
-            XposedHelpers.findAndHookMethod(kgViewManagerClass, "updateShowWallpaper",
-                    boolean.class, new XC_MethodHook() {
+            XposedHelpers.findAndHookMethod(kgViewManagerHostClass, "setCustomBackground",
+                    Drawable.class, new XC_MethodHook() {
                 @Override
                 protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
-                    final boolean show = (Boolean) param.args[0];
-                    if (DEBUG) log("updateShowWallpaper: " + show);
-
-                    FrameLayout keyguardView = (FrameLayout) XposedHelpers.getObjectField(
-                            param.thisObject, "mKeyguardView");
-                    if (keyguardView != null && !show) {
-                        View wp = keyguardView.findViewWithTag("gb_wallpaper");
-                        if (wp != null) {
-                            keyguardView.removeView(wp);
-                            if (DEBUG) log("Custom wallpaper removed");
-                        }
+                    final Drawable d = (Drawable) param.args[0];
+                    if (d != null) {
+                        mBackgroundAlreadySet = !mIsLastScreenBackground;
+                        d.clearColorFilter();
+                        final int alpha = (int) ((1 - prefs.getInt(
+                                GravityBoxSettings.PREF_KEY_LOCKSCREEN_BACKGROUND_OPACITY, 50) / 100f) * 255);
+                        final int overlayColor = Color.argb(alpha, 0, 0, 0);
+                        d.setColorFilter(overlayColor, PorterDuff.Mode.SRC_OVER);
+                        ((View)param.thisObject).invalidate();
+                        if (DEBUG) log("setCustomBackground: custom background opacity set");
                     }
+                    mIsLastScreenBackground = false;
                 }
             });
 
@@ -294,6 +289,9 @@ public class ModLockscreen {
                             boolean.class, glowPadViewShowTargetsHook);
                     XposedHelpers.findAndHookMethod(mGlowPadView.getClass(), "hideTargets",
                             boolean.class, boolean.class, glowPadViewHideTargetsHook);
+                    XposedHelpers.findAndHookMethod(mGlowPadView.getClass(), "switchToState", 
+                            int.class, float.class, float.class, glowPadViewSwitchToStateHook);
+                    mHandler = new Handler();
 
                     // apply custom bottom/right margin to shift unlock ring upwards/left
                     try {
@@ -412,7 +410,10 @@ public class ModLockscreen {
                     XposedHelpers.setObjectField(mGlowPadView, "mTargetDrawables", newTargets);
                     XposedHelpers.setObjectField(mGlowPadView, "mTargetDescriptions", newDescriptions);
                     XposedHelpers.setObjectField(mGlowPadView, "mDirectionDescriptions", newDirections);
-                    XposedHelpers.callMethod(param.thisObject, "updateTargets");
+                    if (res.getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                        XposedHelpers.setFloatField(mGlowPadView, "mFirstItemOffset", 0);
+                    }
+                    mGlowPadView.requestLayout();
                 }
             });
 
@@ -421,9 +422,6 @@ public class ModLockscreen {
                 @Override
                 protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
                     if (DEBUG) log("GlowPadView.OnTriggerListener; index=" + ((Integer) param.args[1]));
-                    if (mHandler != null) {
-                        mHandler.removeCallbacks(mToggleTorchRunnable);
-                    }
                     prefs.reload();
                     if (!prefs.getBoolean(
                             GravityBoxSettings.PREF_KEY_LOCKSCREEN_TARGETS_ENABLE, false)) return;
@@ -546,7 +544,7 @@ public class ModLockscreen {
                 }
             });
 
-            XposedHelpers.findAndHookMethod(kgUpdateMonitorClass, "handleBatteryUpdate",
+            XposedHelpers.findAndHookMethod(mKgUpdateMonitorClass, "handleBatteryUpdate",
                     CLASS_KG_UPDATE_MONITOR_BATTERY_STATUS, new XC_MethodHook() {
                 @Override
                 protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
@@ -560,17 +558,24 @@ public class ModLockscreen {
                     View.class, int.class, new XC_MethodHook() {
                 @Override
                 protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
-                    if (param.args[0] instanceof ViewGroup) {
+                    final View v = (View) param.thisObject;
+                    final int visibilityMode = Integer.valueOf(mPrefs.getString(
+                            GravityBoxSettings.PREF_KEY_LOCKSCREEN_STATUSBAR_CLOCK, "0"));
+
+                    if (visibilityMode != 0) {
+                        v.setSystemUiVisibility(visibilityMode == 1 ?
+                                v.getSystemUiVisibility() | STATUSBAR_DISABLE_CLOCK :
+                                    v.getSystemUiVisibility() & ~STATUSBAR_DISABLE_CLOCK);
+                    } else if (param.args[0] instanceof ViewGroup) {
                         final ViewGroup vg = (ViewGroup) param.args[0];
                         if (vg.getChildAt(0) instanceof AppWidgetHostView) {
                             final AppWidgetProviderInfo info = 
                                     ((AppWidgetHostView) vg.getChildAt(0)).getAppWidgetInfo();
                             final String widgetPackage = info.provider.getPackageName();
                             if (DEBUG) log("onPageSwitched: widget package = " + widgetPackage);
-                            if (CLOCK_WIDGETS.contains(widgetPackage)) {
-                                final View v = (View) param.thisObject; 
-                                v.setSystemUiVisibility(v.getSystemUiVisibility() | STATUSBAR_DISABLE_CLOCK);
-                            }
+                            final boolean disableClock = CLOCK_WIDGETS.contains(widgetPackage);
+                            v.setSystemUiVisibility(v.getSystemUiVisibility() |
+                                    (disableClock ? STATUSBAR_DISABLE_CLOCK : 0));
                         }
                     }
                 }
@@ -627,13 +632,6 @@ public class ModLockscreen {
         @Override
         protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
             mArcVisible = false;
-
-            if (param.thisObject == mGlowPadView && mTorchEnabled) {
-                if (mHandler == null) {
-                    mHandler = new Handler();
-                }
-                mHandler.postDelayed(mToggleTorchRunnable, ViewConfiguration.getLongPressTimeout()*2);
-            }
         }
     };
 
@@ -641,8 +639,36 @@ public class ModLockscreen {
         @Override
         protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
             mArcVisible = true;
-            if (param.thisObject == mGlowPadView && mHandler != null) {
-                mHandler.removeCallbacks(mToggleTorchRunnable);
+        }
+    };
+
+    private static XC_MethodHook glowPadViewSwitchToStateHook = new XC_MethodHook() {
+        @Override
+        protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
+            if (mTorchEnabled && mHandler != null && param.thisObject == mGlowPadView) {
+                final int state = (Integer) param.args[0];
+                final float x = (Float) param.args[1];
+                final float y = (Float) param.args[2];
+                if (DEBUG) log("state=" + state + "; x=" + x + "; y=" + y);
+
+                if (state == 2) {
+                    mHandler.postDelayed(mToggleTorchRunnable, 1000);
+                } else if (state == 3) {
+                    if (mPrevGlowPadState == 2) {
+                        mStartGlowPadPoint = new PointF(x,y);
+                        mDisplayDensity = mGlowPadView.getResources().getDisplayMetrics().density;
+                    } else {
+                        double distance = Math.sqrt(Math.pow(x - mStartGlowPadPoint.x,2) +
+                                Math.pow(y - mStartGlowPadPoint.y, 2)) / mDisplayDensity;
+                        if (DEBUG) log("distance=" + distance);
+                        if (distance > 15) {
+                            mHandler.removeCallbacks(mToggleTorchRunnable);
+                        }
+                    }
+                } else {
+                    mHandler.removeCallbacks(mToggleTorchRunnable);
+                }
+                mPrevGlowPadState = state;
             }
         }
     };
@@ -663,7 +689,6 @@ public class ModLockscreen {
     private static void minimizeChallengeIfDesired(Object challenge) {
         if (challenge == null) return;
 
-        mPrefs.reload();
         if (mPrefs.getBoolean(GravityBoxSettings.PREF_KEY_LOCKSCREEN_MAXIMIZE_WIDGETS, false)) {
             if (DEBUG) log("minimizeChallengeIfDesired: challenge minimized");
             XposedHelpers.callMethod(challenge, "showChallenge", false);
@@ -738,5 +763,28 @@ public class ModLockscreen {
             mGlowPadView.invalidate();
         }
         if (DEBUG_ARC) log("Lockscreen battery arc updated");
+    }
+
+    private static void setLastScreenBackground(Context context) {
+        if (mBackgroundAlreadySet) {
+            if (DEBUG_KIS) log("setLastScreenBackground: Background has been already set (album art?)");
+            return;
+        }
+        try {
+            String kisImageFile = mGbContext.getFilesDir() + "/kis_image.png";
+            Bitmap customBg = BitmapFactory.decodeFile(kisImageFile);
+            if (customBg != null) {
+                if (mPrefs.getBoolean(GravityBoxSettings.PREF_KEY_LOCKSCREEN_BACKGROUND_BLUR_EFFECT, false)) {
+                    customBg = Utils.blurBitmap(context, customBg);
+                }
+                Object kgUpdateMonitor = XposedHelpers.callStaticMethod(mKgUpdateMonitorClass, 
+                        "getInstance", context);
+                mIsLastScreenBackground = true;
+                XposedHelpers.callMethod(kgUpdateMonitor, "dispatchSetBackground", customBg);
+                if (DEBUG_KIS) log("setLastScreenBackground: Last screen background updated");
+            }
+        } catch (Throwable t) {
+            XposedBridge.log(t);
+        }
     }
 }
